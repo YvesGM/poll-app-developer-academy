@@ -1,1 +1,87 @@
-<p>poll-create works!</p>
+<a routerLink="/">Back to polls</a>
+
+<main>
+  <h1>Create Poll</h1>
+
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div>
+      <label for="question">Question</label>
+
+      <input
+        id="question"
+        type="text"
+        formControlName="question"
+        placeholder="Enter your question"
+      />
+
+      @if (
+        form.controls.question.touched &&
+        form.controls.question.hasError('trimmedRequired')
+      ) {
+        <p>Please enter a question.</p>
+      }
+
+      @if (
+        form.controls.question.touched &&
+        form.controls.question.hasError('minlength')
+      ) {
+        <p>The question must contain at least 3 characters.</p>
+      }
+
+      @if (
+        form.controls.question.touched &&
+        form.controls.question.hasError('maxlength')
+      ) {
+        <p>The question must not exceed 250 characters.</p>
+      }
+    </div>
+
+    <fieldset formArrayName="options">
+      <legend>Options</legend>
+
+      @for (option of options.controls; track option) {
+        <div>
+          <label [for]="'option-' + $index">Option {{ $index + 1 }}</label>
+
+          <input
+            [id]="'option-' + $index"
+            type="text"
+            [formControlName]="$index"
+            placeholder="Enter an option"
+          />
+
+          @if (option.touched && option.hasError('trimmedRequired')) {
+            <p>Please enter an option.</p>
+          }
+
+          @if (option.touched && option.hasError('maxlength')) {
+            <p>An option must not exceed 120 characters.</p>
+          }
+
+          <button
+            type="button"
+            [disabled]="options.length <= 2 || saving()"
+            (click)="removeOption($index)"
+          >
+            Remove
+          </button>
+        </div>
+      }
+
+      @if (options.touched && options.hasError('duplicateOptions')) {
+        <p>Each option must be unique.</p>
+      }
+    </fieldset>
+
+    <button type="button" [disabled]="saving()" (click)="addOption()">
+      Add option
+    </button>
+    <button type="submit" [disabled]="saving()">
+      {{ saving() ? 'Creating...' : 'Create poll' }}
+    </button>
+  </form>
+</main>

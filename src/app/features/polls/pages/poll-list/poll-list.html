@@ -1,1 +1,32 @@
-<p>poll-list works!</p>
+<main>
+  <h1>Polls</h1>
+
+  <a routerLink="/polls/new">Create Poll</a>
+
+  @if (loading()) {
+    <p>Loading polls...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+    <button type="button" (click)="reload()">Try again</button>
+  } @else {
+    <section>
+      <h2>Open polls ({{ openPolls().length }})</h2>
+
+      @for (poll of openPolls(); track poll.id) {
+        <app-poll-card [poll]="poll" />
+      } @empty {
+        <p>No open polls available.</p>
+      }
+    </section>
+
+    <section>
+      <h2>Closed polls ({{ closedPolls().length }})</h2>
+
+      @for (poll of closedPolls(); track poll.id) {
+        <app-poll-card [poll]="poll" />
+      } @empty {
+        <p>No closed polls available.</p>
+      }
+    </section>
+  }
+</main>

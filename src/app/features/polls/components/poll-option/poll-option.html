@@ -1,1 +1,15 @@
-<p>poll-option works!</p>
+<article>
+  <h2>{{ option().text }}</h2>
+
+  <p>
+    Votes: {{ option().votes }}
+  </p>
+
+  <button
+    type="button"
+    [disabled]="disabled()"
+    (click)="vote()"
+  >
+    Vote
+  </button>
+</article>
