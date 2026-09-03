@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { POLL_CATEGORIES, PollCategory } from '../../models/poll.model';
 import { PollService } from '../../services/poll';
 
 const trimmedRequired: ValidatorFn = (
@@ -48,12 +49,22 @@ export class PollCreate {
 
   protected readonly saving = signal(false);
   protected readonly error = this.pollService.error;
+  protected readonly categories = POLL_CATEGORIES;
 
   protected readonly form = this.formBuilder.nonNullable.group({
+    category: this.formBuilder.nonNullable.control<PollCategory>('Technology', [
+      Validators.required,
+    ]),
+    title: [
+      '',
+      [trimmedRequired, Validators.minLength(1), Validators.maxLength(120)],
+    ],
     question: [
       '',
       [trimmedRequired, Validators.minLength(3), Validators.maxLength(250)],
     ],
+    description: ['', [Validators.maxLength(1000)]],
+    deadline: [''],
     options: this.formBuilder.nonNullable.array(
       [this.createOptionControl(), this.createOptionControl()],
       [Validators.minLength(2), uniqueOptions],
@@ -88,11 +99,17 @@ export class PollCreate {
     this.pollService.clearError();
 
     try {
-      const { question, options } = this.form.getRawValue();
-      const poll = await this.pollService.createPoll(
-        question.trim(),
-        options.map((option) => option.trim()),
-      );
+      const { category, title, question, description, deadline, options } =
+        this.form.getRawValue();
+
+      const poll = await this.pollService.createPoll({
+        category,
+        title: title.trim(),
+        question: question.trim(),
+        description: description.trim() || null,
+        deadline: deadline ? new Date(deadline) : null,
+        options: options.map((option) => option.trim()),
+      });
 
       if (poll) {
         await this.router.navigate(['/polls', poll.id]);

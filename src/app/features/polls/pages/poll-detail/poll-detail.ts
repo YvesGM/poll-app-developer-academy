@@ -25,31 +25,23 @@ export class PollDetail {
     this.pollService.getPollById(this.pollId),
   );
 
+  protected readonly isPast = computed(() => {
+    const poll = this.poll();
+    return poll ? this.pollService.isPast(poll) : false;
+  });
+
   protected readonly hasVoted = computed(() =>
     this.pollService.hasVoted(this.pollId),
   );
 
   protected async vote(optionId: string): Promise<void> {
-    if (this.busy() || this.hasVoted()) {
+    if (this.busy() || this.hasVoted() || this.isPast()) {
       return;
     }
 
     this.busy.set(true);
     try {
       await this.pollService.vote(this.pollId, optionId);
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  protected async closePoll(): Promise<void> {
-    if (this.busy()) {
-      return;
-    }
-
-    this.busy.set(true);
-    try {
-      await this.pollService.closePoll(this.pollId);
     } finally {
       this.busy.set(false);
     }
@@ -63,7 +55,7 @@ export class PollDetail {
     }
 
     const confirmed = window.confirm(
-      `Delete poll "${currentPoll.question}"? This cannot be undone.`,
+      `Delete survey "${currentPoll.title}"? This cannot be undone.`,
     );
 
     if (!confirmed) {

@@ -1,8 +1,8 @@
-<a routerLink="/">Back to polls</a>
+<a routerLink="/">Back to surveys</a>
 
 @if (loading()) {
   <main>
-    <p>Loading poll...</p>
+    <p>Loading survey...</p>
   </main>
 } @else if (error()) {
   <main>
@@ -10,50 +10,56 @@
   </main>
 } @else if (poll(); as currentPoll) {
   <main>
-    <h1>{{ currentPoll.question }}</h1>
+    <p>{{ currentPoll.category }}</p>
+    <h1>{{ currentPoll.title }}</h1>
+    <p>{{ currentPoll.question }}</p>
+
+    @if (currentPoll.description) {
+      <p>{{ currentPoll.description }}</p>
+    }
+
+    @if (currentPoll.deadline; as deadline) {
+      <p>Deadline: {{ deadline }}</p>
+    } @else {
+      <p>No deadline</p>
+    }
 
     <p>
       Status:
-      @if (currentPoll.closed) {
-        <strong>Closed</strong>
+      @if (isPast()) {
+        <strong>Past</strong>
       } @else {
-        <strong>Open</strong>
+        <strong>Active</strong>
       }
     </p>
 
     <app-poll-results [options]="currentPoll.options" />
 
-    @if (currentPoll.closed) {
-      <p>This poll is closed. Voting is no longer possible.</p>
+    @if (isPast()) {
+      <p>This survey has ended. Voting is no longer possible.</p>
     } @else if (hasVoted()) {
-      <p>You have already voted in this poll.</p>
+      <p>You have already voted in this survey.</p>
     } @else {
       <p>Choose one option. You can vote only once from this browser.</p>
     }
-
-    @if (!currentPoll.closed) {
-      <button type="button" [disabled]="busy()" (click)="closePoll()">
-        Close poll
-      </button>
-    }
-
-    <button type="button" [disabled]="busy()" (click)="deletePoll()">
-      Delete poll
-    </button>
 
     <section>
       @for (option of currentPoll.options; track option.id) {
         <app-poll-option
           [option]="option"
-          [disabled]="currentPoll.closed || hasVoted() || busy()"
+          [disabled]="isPast() || hasVoted() || busy()"
           (voted)="vote($event)"
         />
       }
     </section>
+
+    <button type="button" [disabled]="busy()" (click)="deletePoll()">
+      Delete survey
+    </button>
   </main>
 } @else {
   <main>
-    <h1>Poll not found</h1>
-    <p>The requested poll does not exist.</p>
+    <h1>Survey not found</h1>
+    <p>The requested survey does not exist.</p>
   </main>
 }

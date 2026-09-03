@@ -1,31 +1,31 @@
 <main>
-  <h1>Polls</h1>
+  <h1>Surveys</h1>
 
-  <a routerLink="/polls/new">Create Poll</a>
+  <a routerLink="/polls/new">New Survey</a>
 
   @if (loading()) {
-    <p>Loading polls...</p>
+    <p>Loading surveys...</p>
   } @else if (error()) {
     <p role="alert">{{ error() }}</p>
     <button type="button" (click)="reload()">Try again</button>
   } @else {
     <section>
-      <h2>Open polls ({{ openPolls().length }})</h2>
+      <h2>Active Surveys ({{ activePolls().length }})</h2>
 
-      @for (poll of openPolls(); track poll.id) {
+      @for (poll of activePolls(); track poll.id) {
         <app-poll-card [poll]="poll" />
       } @empty {
-        <p>No open polls available.</p>
+        <p>No active surveys available.</p>
       }
     </section>
 
     <section>
-      <h2>Closed polls ({{ closedPolls().length }})</h2>
+      <h2>Past Surveys ({{ pastPolls().length }})</h2>
 
-      @for (poll of closedPolls(); track poll.id) {
+      @for (poll of pastPolls(); track poll.id) {
         <app-poll-card [poll]="poll" />
       } @empty {
-        <p>No closed polls available.</p>
+        <p>No past surveys available.</p>
       }
     </section>
   }
