@@ -9,11 +9,10 @@
     <div class="survey-card__footer">
       <p>{{ totalVotes() }} participants</p>
       @if (poll().deadline; as deadline) {
-        <p>Ends {{ deadline | date: 'MMM d' }}</p>
+        <p class="survey-card__deadline">Ends {{ deadline | date: 'MMM d' }}</p>
       } @else {
-        <p>No deadline</p>
+        <p class="survey-card__deadline">No deadline</p>
       }
     </div>
-    <span class="survey-card__arrow" aria-hidden="true">→</span>
   </article>
 </a>

@@ -11,6 +11,7 @@ import { PollOption as PollOptionModel } from '../../models/poll.model';
 export class PollOption {
   readonly option = input.required<PollOptionModel>();
   readonly disabled = input(false);
+  readonly checked = input(false);
 
   readonly voted = output<string>();
 

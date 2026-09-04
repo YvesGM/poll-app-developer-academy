@@ -39,3 +39,8 @@
   margin-top: 2rem;
   color: var(--color-text);
 }
+@media (prefers-reduced-motion: reduce) {
+  .result__bar {
+    transition: none;
+  }
+}

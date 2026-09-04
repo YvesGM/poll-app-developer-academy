@@ -1,9 +1,11 @@
 @if (totalVotes() > 0) {
   <ul class="results">
-    @for (option of options(); track option.id) {
+    @for (option of options(); track option.id; let index = $index) {
       <li class="result">
         <div class="result__label">
-          <span>{{ option.text }}</span>
+          <span
+            ><b>{{ labelFor(index) }}</b> {{ option.text }}</span
+          >
           <strong>{{ percentage(option.votes) }}%</strong>
         </div>
         <div class="result__track">

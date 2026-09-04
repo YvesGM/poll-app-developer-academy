@@ -1,4 +1,10 @@
-<button class="answer" type="button" [disabled]="disabled()" (click)="vote()">
-  <span class="answer__box" aria-hidden="true"></span>
+<button
+  class="answer"
+  type="button"
+  [class.answer--checked]="checked()"
+  [disabled]="disabled()"
+  (click)="vote()"
+>
+  <span class="answer__box" aria-hidden="true"><img src="assets/icons/check.svg" alt="" /></span>
   <span>{{ option().text }}</span>
 </button>

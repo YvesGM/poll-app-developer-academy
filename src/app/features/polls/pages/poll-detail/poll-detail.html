@@ -39,6 +39,7 @@
           @for (option of currentPoll.options; track option.id) {
             <app-poll-option
               [option]="option"
+              [checked]="selectedOptionId() === option.id"
               [disabled]="isPast() || hasVoted() || busy()"
               (voted)="vote($event)"
             />

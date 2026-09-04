@@ -75,9 +75,7 @@
               [disabled]="options.length <= 2"
               [attr.aria-label]="'Delete answer ' + ($index + 1)"
               (click)="removeOption($index)"
-            >
-              ×
-            </button>
+            ></button>
             @if (option.touched && option.invalid) {
               <p class="field-error">Enter an answer with no more than 120 characters.</p>
             }
@@ -88,7 +86,7 @@
         }
       </fieldset>
       <button class="add-answer" type="button" (click)="addOption()">
-        <span aria-hidden="true">＋</span> Add answer
+        <img src="assets/icons/add.svg" width="24" height="24" alt="" /> Add answer
       </button>
     </section>
 

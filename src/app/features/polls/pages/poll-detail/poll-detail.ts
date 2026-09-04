@@ -23,6 +23,7 @@ export class PollDetail {
   protected readonly loading = this.pollService.loading;
   protected readonly error = this.pollService.error;
   protected readonly busy = signal(false);
+  protected readonly selectedOptionId = signal<string | null>(null);
 
   protected readonly poll = computed(() => this.pollService.getPollById(this.pollId));
 
@@ -45,7 +46,8 @@ export class PollDetail {
 
     this.busy.set(true);
     try {
-      await this.pollService.vote(this.pollId, optionId);
+      const saved = await this.pollService.vote(this.pollId, optionId);
+      if (saved) this.selectedOptionId.set(optionId);
     } finally {
       this.busy.set(false);
     }

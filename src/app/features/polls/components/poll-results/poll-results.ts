@@ -2,6 +2,8 @@ import { Component, input } from '@angular/core';
 
 import { PollOption } from '../../models/poll.model';
 
+const FIRST_ANSWER_CODE = 65;
+
 @Component({
   imports: [],
   selector: 'app-poll-results',
@@ -32,5 +34,14 @@ export class PollResults {
     }
 
     return Math.round((votes / totalVotes) * 100);
+  }
+
+  /**
+   * Returns the alphabetical presentation label for one answer.
+   * @param index Zero-based answer index.
+   * @returns Uppercase alphabetical label.
+   */
+  protected labelFor(index: number): string {
+    return String.fromCharCode(FIRST_ANSWER_CODE + index);
   }
 }

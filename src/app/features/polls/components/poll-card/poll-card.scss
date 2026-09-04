@@ -6,10 +6,11 @@
 .survey-card {
   position: relative;
   min-height: 8.125rem;
-  padding: 1.5rem 4.5rem 1.5rem 1.5rem;
+  padding: 1.5rem;
   overflow: hidden;
   border-radius: 0 3.125rem 0 0;
-  background: var(--color-card);
+  color: var(--color-text);
+  background: var(--color-orange);
   transition:
     transform 160ms ease,
     background 160ms ease;
@@ -34,17 +35,21 @@ h3 {
 .survey-card__footer p {
   margin: 0;
 }
-.survey-card__arrow {
-  position: absolute;
-  right: 1.6rem;
-  bottom: 1.4rem;
-  font-size: 2rem;
+.survey-card__deadline {
+  width: fit-content;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  background: var(--color-orange);
 }
 .survey-card-link--highlight .survey-card {
   min-height: 19.375rem;
   padding: 2rem;
   border-radius: 0 5rem 0 0;
-  background: var(--color-orange);
+  color: var(--color-text);
+  background: var(--color-card);
+}
+.survey-card-link--highlight:hover .survey-card {
+  background: var(--color-surface);
 }
 .survey-card-link--highlight h3 {
   max-width: 15rem;
@@ -64,5 +69,10 @@ h3 {
   }
   .survey-card-link--highlight .survey-card {
     min-height: 17rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .survey-card {
+    transition: none;
   }
 }

@@ -4,7 +4,10 @@
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero__copy">
       <h1 id="hero-heading">Collect Feedback, Unlock Ideas</h1>
-      <p>Create surveys, share your questions and discover what people really think.</p>
+      <p>
+        Create and share surveys in minutes – from team events to workplace culture. Collect
+        opinions, engage your audience, and turn feedback into action.
+      </p>
       <button class="button button--primary" type="button" (click)="openCreateModal()">
         New Survey
       </button>
@@ -87,9 +90,13 @@
 
 @if (publishConfirmationOpen()) {
   <aside class="publish-confirmation" role="status">
+    <img src="assets/icons/check.svg" width="18" height="16" alt="" />
     <p>Your survey is now published</p>
-    <button type="button" aria-label="Close confirmation" (click)="closePublishConfirmation()">
-      ×
-    </button>
+    <button
+      class="confirmation-close"
+      type="button"
+      aria-label="Close confirmation"
+      (click)="closePublishConfirmation()"
+    ></button>
   </aside>
 }

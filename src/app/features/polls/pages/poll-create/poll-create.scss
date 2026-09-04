@@ -59,6 +59,15 @@ textarea {
   color: var(--color-text);
   background: var(--color-surface);
 }
+select {
+  padding-right: 2.5rem;
+  color: var(--color-surface);
+  background-color: var(--color-purple);
+  background-image: url('/assets/icons/dropdown.svg');
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  appearance: none;
+}
 textarea {
   min-height: 6.75rem;
   resize: vertical;
@@ -102,7 +111,8 @@ legend {
   border: 0;
   border-radius: 50%;
   color: var(--color-surface);
-  background: var(--color-purple);
+  background-color: var(--color-purple);
+  mask: url('/assets/icons/delete.svg') center / 1.125rem 1.25rem no-repeat;
   cursor: pointer;
 }
 .delete-button:disabled {
@@ -121,8 +131,9 @@ legend {
   font: 700 0.875rem var(--font-button);
   cursor: pointer;
 }
-.add-answer span {
-  font-size: 1.25rem;
+.add-answer img {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 .field-error,
 .form-error {
