@@ -1,0 +1,122 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--color-surface);
+}
+.detail-header {
+  display: flex;
+  width: min(100% - 3rem, 76.25rem);
+  height: 7.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+.detail-header > a:first-child {
+  text-decoration: none;
+}
+.detail-page {
+  display: grid;
+  width: min(100% - 3rem, 66.1875rem);
+  grid-template-columns: minmax(0, 43.875rem) 19.6875rem;
+  align-items: start;
+  gap: 2.625rem;
+  margin: 0 auto;
+  padding-bottom: 5rem;
+}
+.survey-panel {
+  min-height: 44rem;
+  padding: 2.5rem;
+  border-radius: 0 10rem 0 0;
+  background: rgb(53 39 58 / 8%);
+}
+.status-pill {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  border-radius: 1.25rem;
+  color: var(--color-surface);
+  background: var(--color-purple);
+  font: 0.75rem var(--font-button);
+}
+.survey-meta {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 0.875rem;
+}
+h1 {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--color-orange);
+  font: 400 3.5rem/0.9 var(--font-heading);
+}
+.survey-description {
+  max-width: 34rem;
+  line-height: 1.5;
+}
+.survey-deadline {
+  margin: 1rem 0 2.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.question {
+  max-width: 35rem;
+}
+.question h2 {
+  margin: 0 0 0.5rem;
+  font: 400 1.75rem/1.1 var(--font-heading);
+}
+.voting-note {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+}
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.survey-results {
+  padding-top: 3rem;
+}
+.survey-results > h2 {
+  margin: 0 0 2rem;
+  font: 400 2rem/1 var(--font-heading);
+}
+.survey-results > h2 span {
+  margin-left: 0.5rem;
+  color: var(--color-orange);
+  font: 700 0.75rem var(--font-button);
+}
+.not-found {
+  grid-column: 1 / -1;
+}
+@media (max-width: 48rem) {
+  .detail-header {
+    width: calc(100% - 2rem);
+    height: 7rem;
+  }
+  .detail-header .button {
+    padding: 0.65rem 0.8rem;
+  }
+  .detail-page {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 4rem;
+  }
+  .survey-panel {
+    width: calc(100% - 1rem);
+    min-height: auto;
+    padding: 2rem 1.5rem 3rem;
+    border-radius: 0 5rem 0 0;
+  }
+  h1 {
+    font-size: 3rem;
+  }
+  .answers {
+    grid-template-columns: 1fr;
+  }
+  .survey-results {
+    width: calc(100% - 3rem);
+    margin: 0 auto;
+    padding-top: 3.5rem;
+  }
+}

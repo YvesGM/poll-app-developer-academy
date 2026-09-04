@@ -1,14 +1,19 @@
-<article>
-  <p>{{ poll().category }}</p>
-  <h3>{{ poll().title }}</h3>
-
-  <p>{{ poll().options.length }} options · {{ totalVotes() }} votes</p>
-
-  @if (poll().deadline; as deadline) {
-    <p>Deadline: {{ deadline | date: 'medium' }}</p>
-  } @else {
-    <p>Deadline: No deadline</p>
-  }
-
-  <a [routerLink]="['/polls', poll().id]">Open Survey</a>
-</article>
+<a
+  class="survey-card-link"
+  [class.survey-card-link--highlight]="highlight()"
+  [routerLink]="['/polls', poll().id]"
+>
+  <article class="survey-card">
+    <p class="survey-card__category">{{ poll().category }}</p>
+    <h3>{{ poll().title }}</h3>
+    <div class="survey-card__footer">
+      <p>{{ totalVotes() }} participants</p>
+      @if (poll().deadline; as deadline) {
+        <p>Ends {{ deadline | date: 'MMM d' }}</p>
+      } @else {
+        <p>No deadline</p>
+      }
+    </div>
+    <span class="survey-card__arrow" aria-hidden="true">→</span>
+  </article>
+</a>

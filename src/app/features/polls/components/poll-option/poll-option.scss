@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+.answer {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(53 39 58 / 24%);
+  border-radius: 0.625rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+.answer:hover:not(:disabled) {
+  background: var(--color-orange-soft);
+}
+.answer:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+.answer__box {
+  width: 1.3125rem;
+  height: 1.3125rem;
+  flex: 0 0 auto;
+  border: 0.1875rem solid var(--color-purple);
+  border-radius: 0.2rem;
+}

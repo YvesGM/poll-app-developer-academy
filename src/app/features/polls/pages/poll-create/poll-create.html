@@ -1,119 +1,108 @@
-<a routerLink="/">Back to surveys</a>
-
-<main>
-  <h1>Create Survey</h1>
+<article class="create">
+  <header class="create__header">
+    <div>
+      <span class="draft-pill">Draft</span>
+      <h1>Create Survey</h1>
+    </div>
+    <button class="button button--secondary" type="button" [disabled]="saving()" (click)="cancel()">
+      Cancel
+    </button>
+  </header>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
-    <fieldset>
-      <legend>Required information</legend>
-
-      <div>
-        <label for="category">Category *</label>
-        <select id="category" formControlName="category">
+    <section class="survey-fields" aria-label="Survey information">
+      <div class="field">
+        <label for="title">Survey Name*</label
+        ><input id="title" type="text" formControlName="title" placeholder="Name your survey" />
+        @if (form.controls.title.touched && form.controls.title.invalid) {
+          <p class="field-error">Enter a name with no more than 120 characters.</p>
+        }
+      </div>
+      <div class="field field--description">
+        <label for="description">Description</label
+        ><textarea
+          id="description"
+          formControlName="description"
+          placeholder="Describe your survey"
+        ></textarea>
+        @if (form.controls.description.touched && form.controls.description.invalid) {
+          <p class="field-error">Use no more than 1000 characters.</p>
+        }
+      </div>
+      <div class="field">
+        <label for="deadline">End date</label
+        ><input id="deadline" type="datetime-local" formControlName="deadline" />
+      </div>
+      <div class="field">
+        <label for="category">Category*</label
+        ><select id="category" formControlName="category">
           @for (category of categories; track category) {
             <option [value]="category">{{ category }}</option>
           }
         </select>
       </div>
+    </section>
 
-      <div>
-        <label for="title">Title *</label>
-        <input
-          id="title"
-          type="text"
-          formControlName="title"
-          placeholder="Enter a survey title"
-        />
-
-        @if (form.controls.title.touched && form.controls.title.invalid) {
-          <p>Please enter a title with no more than 120 characters.</p>
-        }
-      </div>
-
-      <div>
-        <label for="question">Question *</label>
-        <input
+    <section class="question-block" aria-labelledby="question-label">
+      <header><span>Question 1</span></header>
+      <div class="field">
+        <label id="question-label" for="question">Question*</label
+        ><input
           id="question"
           type="text"
           formControlName="question"
-          placeholder="Enter your question"
+          placeholder="Type your question"
         />
-
         @if (form.controls.question.touched && form.controls.question.invalid) {
-          <p>Please enter a question between 3 and 250 characters.</p>
+          <p class="field-error">Enter a question between 3 and 250 characters.</p>
         }
       </div>
 
       <fieldset formArrayName="options">
-        <legend>Answer options *</legend>
-
+        <legend>Answers*</legend>
         @for (option of options.controls; track option) {
-          <div>
-            <label [for]="'option-' + $index">Option {{ $index + 1 }} *</label>
-
+          <div class="answer-field">
             <input
               [id]="'option-' + $index"
               type="text"
               [formControlName]="$index"
-              placeholder="Enter an option"
+              [attr.aria-label]="'Answer ' + ($index + 1)"
+              placeholder="Type your answer"
             />
-
-            @if (option.touched && option.invalid) {
-              <p>Please enter an option with no more than 120 characters.</p>
-            }
-
             <button
+              class="delete-button"
               type="button"
               [disabled]="options.length <= 2"
+              [attr.aria-label]="'Delete answer ' + ($index + 1)"
               (click)="removeOption($index)"
             >
-              Remove
+              ×
             </button>
+            @if (option.touched && option.invalid) {
+              <p class="field-error">Enter an answer with no more than 120 characters.</p>
+            }
           </div>
         }
-
         @if (options.touched && options.hasError('duplicateOptions')) {
-          <p>Each option must be unique.</p>
+          <p class="field-error">Each answer must be unique.</p>
         }
       </fieldset>
-
-      <button type="button" (click)="addOption()">Add option</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Optional information</legend>
-
-      <div>
-        <label for="description">Description</label>
-        <textarea
-          id="description"
-          formControlName="description"
-          placeholder="Add further information"
-        ></textarea>
-
-        @if (
-          form.controls.description.touched && form.controls.description.invalid
-        ) {
-          <p>The description may contain at most 1000 characters.</p>
-        }
-      </div>
-
-      <div>
-        <label for="deadline">Deadline</label>
-        <input id="deadline" type="datetime-local" formControlName="deadline" />
-      </div>
-    </fieldset>
+      <button class="add-answer" type="button" (click)="addOption()">
+        <span aria-hidden="true">＋</span> Add answer
+      </button>
+    </section>
 
     @if (error()) {
-      <p role="alert">{{ error() }}</p>
+      <p class="form-error" role="alert">{{ error() }}</p>
     }
-
-    <button type="submit" [disabled]="saving()">
-      @if (saving()) {
-        Creating...
-      } @else {
-        Create survey
-      }
-    </button>
+    <footer class="create__footer">
+      <button class="button button--primary" type="submit" [disabled]="saving()">
+        @if (saving()) {
+          Publishing...
+        } @else {
+          Publish Survey
+        }
+      </button>
+    </footer>
   </form>
-</main>
+</article>

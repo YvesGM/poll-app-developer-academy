@@ -1,15 +1,4 @@
-<article>
-  <h2>{{ option().text }}</h2>
-
-  <p>
-    Votes: {{ option().votes }}
-  </p>
-
-  <button
-    type="button"
-    [disabled]="disabled()"
-    (click)="vote()"
-  >
-    Vote
-  </button>
-</article>
+<button class="answer" type="button" [disabled]="disabled()" (click)="vote()">
+  <span class="answer__box" aria-hidden="true"></span>
+  <span>{{ option().text }}</span>
+</button>

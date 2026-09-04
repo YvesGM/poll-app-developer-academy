@@ -1,15 +1,20 @@
-<p>
-  Total votes: {{ totalVotes() }}
-</p>
-
 @if (totalVotes() > 0) {
-  <ul>
+  <ul class="results">
     @for (option of options(); track option.id) {
-      <li>
-        {{ option.text }}: {{ option.votes }} votes ({{ percentage(option.votes) }}%)
+      <li class="result">
+        <div class="result__label">
+          <span>{{ option.text }}</span>
+          <strong>{{ percentage(option.votes) }}%</strong>
+        </div>
+        <div class="result__track">
+          <span class="result__bar" [style.width.%]="percentage(option.votes)"></span>
+        </div>
       </li>
     }
   </ul>
 } @else {
-  <p>No votes yet.</p>
+  <div class="results-empty">
+    <p>Results will be shown here after participants complete the survey.</p>
+    <strong>There are no answers yet.</strong>
+  </div>
 }

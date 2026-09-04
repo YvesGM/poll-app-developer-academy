@@ -14,6 +14,7 @@ export class PollOption {
 
   readonly voted = output<string>();
 
+  /** Emits the selected option identifier to the parent view. */
   protected vote(): void {
     this.voted.emit(this.option().id);
   }

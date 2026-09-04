@@ -1,1 +1,84 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&family=Nerko+One&family=Nokora:wght@400;700&display=swap');
+
+:root {
+  --color-orange: #ffb770;
+  --color-orange-soft: #ffcfa1;
+  --color-purple: #35273a;
+  --color-text: #221227;
+  --color-card: #faf5fe;
+  --color-surface: #fefdff;
+  --color-track: #ededed;
+  --color-result: #d79451;
+  --font-heading: 'Nerko One', cursive;
+  --font-body: 'Mulish', sans-serif;
+  --font-button: 'Nokora', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-purple);
+}
+
+body {
+  min-width: 20rem;
+  margin: 0;
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.625rem;
+  font-family: var(--font-button);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary {
+  color: var(--color-purple);
+  background: var(--color-orange);
+}
+.button--secondary {
+  color: var(--color-surface);
+  background: transparent;
+  border: 1px solid var(--color-surface);
+}
+.button--light {
+  color: var(--color-purple);
+  background: var(--color-surface);
+}
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 3px;
+}

@@ -1,32 +1,95 @@
-<main>
-  <h1>Surveys</h1>
+<main class="home">
+  <header class="home__header"><app-logo /></header>
 
-  <a routerLink="/polls/new">New Survey</a>
+  <section class="hero" aria-labelledby="hero-heading">
+    <div class="hero__copy">
+      <h1 id="hero-heading">Collect Feedback, Unlock Ideas</h1>
+      <p>Create surveys, share your questions and discover what people really think.</p>
+      <button class="button button--primary" type="button" (click)="openCreateModal()">
+        New Survey
+      </button>
+    </div>
+    <app-hero-visual />
+  </section>
 
-  @if (loading()) {
-    <p>Loading surveys...</p>
-  } @else if (error()) {
-    <p role="alert">{{ error() }}</p>
-    <button type="button" (click)="reload()">Try again</button>
-  } @else {
-    <section>
-      <h2>Active Surveys ({{ activePolls().length }})</h2>
-
-      @for (poll of activePolls(); track poll.id) {
-        <app-poll-card [poll]="poll" />
-      } @empty {
-        <p>No active surveys available.</p>
+  <section class="surveys" aria-labelledby="surveys-heading">
+    <h2 id="surveys-heading">Your surveys</h2>
+    @if (loading()) {
+      <p class="state-message">Loading surveys...</p>
+    } @else if (error()) {
+      <div class="state-message" role="alert">
+        <p>{{ error() }}</p>
+        <button class="button button--light" type="button" (click)="reload()">Try again</button>
+      </div>
+    } @else {
+      @if (endingSoonPolls().length > 0) {
+        <section class="ending" aria-labelledby="ending-heading">
+          <h3 id="ending-heading">Ending Soon</h3>
+          <div class="ending__grid">
+            @for (poll of endingSoonPolls(); track poll.id) {
+              <app-poll-card [poll]="poll" [highlight]="true" />
+            }
+          </div>
+        </section>
       }
-    </section>
 
-    <section>
-      <h2>Past Surveys ({{ pastPolls().length }})</h2>
+      <div class="survey-toolbar">
+        <nav class="survey-tabs" aria-label="Survey status">
+          <button
+            type="button"
+            [attr.aria-pressed]="selectedTab() === 'active'"
+            (click)="selectTab('active')"
+          >
+            Active
+          </button>
+          <button
+            type="button"
+            [attr.aria-pressed]="selectedTab() === 'past'"
+            (click)="selectTab('past')"
+          >
+            Past
+          </button>
+        </nav>
+        <label class="category-select"
+          >Sort by categories
+          <select [value]="selectedCategory()" (change)="changeCategory($event)">
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </label>
+      </div>
 
-      @for (poll of pastPolls(); track poll.id) {
-        <app-poll-card [poll]="poll" />
-      } @empty {
-        <p>No past surveys available.</p>
-      }
-    </section>
-  }
+      <section class="survey-grid" aria-label="Survey list">
+        @for (poll of visiblePolls(); track poll.id) {
+          <app-poll-card [poll]="poll" />
+        } @empty {
+          <p class="empty-list">No {{ selectedTab() }} surveys available for this category.</p>
+        }
+      </section>
+    }
+  </section>
 </main>
+
+@if (createModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <section
+      class="modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create Survey"
+      (click)="$event.stopPropagation()"
+    >
+      <app-poll-create (created)="surveyCreated($event)" (cancelled)="closeCreateModal()" />
+    </section>
+  </div>
+}
+
+@if (publishConfirmationOpen()) {
+  <aside class="publish-confirmation" role="status">
+    <p>Your survey is now published</p>
+    <button type="button" aria-label="Close confirmation" (click)="closePublishConfirmation()">
+      ×
+    </button>
+  </aside>
+}
