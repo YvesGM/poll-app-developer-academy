@@ -8,8 +8,8 @@
         Create and share surveys in minutes – from team events to workplace culture. Collect
         opinions, engage your audience, and turn feedback into action.
       </p>
-      <button class="button button--primary" type="button" (click)="openCreateModal()">
-        New Survey
+      <button class="button button--primary hero__new-survey" type="button" (click)="openCreateModal()">
+        New survey
       </button>
     </div>
     <app-hero-visual />
@@ -27,7 +27,7 @@
     } @else {
       @if (endingSoonPolls().length > 0) {
         <section class="ending" aria-labelledby="ending-heading">
-          <h3 id="ending-heading">Ending Soon</h3>
+          <h3 id="ending-heading">Ending soon surveys</h3>
           <div class="ending__grid">
             @for (poll of endingSoonPolls(); track poll.id) {
               <app-poll-card [poll]="poll" [highlight]="true" />
@@ -43,24 +43,52 @@
             [attr.aria-pressed]="selectedTab() === 'active'"
             (click)="selectTab('active')"
           >
-            Active
+            Active survey
           </button>
           <button
             type="button"
             [attr.aria-pressed]="selectedTab() === 'past'"
             (click)="selectTab('past')"
           >
-            Past
+            Past survey
           </button>
         </nav>
-        <label class="category-select"
-          >Sort by categories
-          <select [value]="selectedCategory()" (change)="changeCategory($event)">
-            @for (category of categories; track category) {
-              <option [value]="category">{{ category }}</option>
-            }
-          </select>
-        </label>
+        <div
+          class="category-menu"
+          (focusout)="handleCategoryFocusOut($event)"
+          (keydown.escape)="closeCategoryMenu()"
+        >
+          <button
+            class="category-menu__trigger"
+            type="button"
+            aria-haspopup="menu"
+            aria-controls="category-options"
+            [attr.aria-expanded]="categoryMenuOpen()"
+            (click)="toggleCategoryMenu()"
+          >
+            Sort by categories
+            <span
+              class="category-menu__arrow"
+              [class.category-menu__arrow--open]="categoryMenuOpen()"
+            ></span>
+          </button>
+          @if (categoryMenuOpen()) {
+            <ul id="category-options" class="category-menu__options" role="menu">
+              @for (category of categories; track category) {
+                <li role="none">
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    [attr.aria-checked]="selectedCategory() === category"
+                    (click)="chooseCategory(category)"
+                  >
+                    {{ categoryLabel(category) }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </div>
 
       <section class="survey-grid" aria-label="Survey list">

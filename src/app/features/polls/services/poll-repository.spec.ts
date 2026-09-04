@@ -14,7 +14,8 @@ const pollRows = [
     created_at: '2026-09-04T10:00:00Z',
   },
 ];
-const optionRows = [{ id: 'option-1', poll_id: 'poll-1', text: 'First' }];
+const questionRows = [{ id: 'question-1', poll_id: 'poll-1', text: 'Which option?', position: 0, allow_multiple: false }];
+const optionRows = [{ id: 'option-1', poll_id: 'poll-1', question_id: 'question-1', text: 'First' }];
 const voteRows = [{ option_id: 'option-1' }];
 
 const supabaseStub = {
@@ -26,8 +27,9 @@ const supabaseStub = {
 };
 
 function selectRows(table: string): unknown {
-  if (table === 'polls') {
-    return { order: async () => ({ data: pollRows, error: null }) };
+  if (table === 'polls' || table === 'poll_questions') {
+    const data = table === 'polls' ? pollRows : questionRows;
+    return { order: async () => ({ data, error: null }) };
   }
   const data = table === 'poll_options' ? optionRows : voteRows;
   return Promise.resolve({ data, error: null });
@@ -46,6 +48,7 @@ describe('PollRepository', () => {
   it('loads the complete persisted poll snapshot', async () => {
     await expect(repository.fetchSnapshot()).resolves.toEqual({
       polls: pollRows,
+      questions: questionRows,
       options: optionRows,
       votes: voteRows,
     });

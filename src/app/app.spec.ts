@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter, RouterOutlet } from '@angular/router';
 
 import { App } from './app';
@@ -21,8 +22,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
-    expect(
-      fixture.debugElement.query((node) => node.componentInstance instanceof RouterOutlet),
-    ).toBeTruthy();
+    expect(fixture.debugElement.query(By.directive(RouterOutlet))).toBeTruthy();
   });
 });

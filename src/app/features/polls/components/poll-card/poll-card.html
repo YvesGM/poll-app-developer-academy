@@ -7,12 +7,7 @@
     <p class="survey-card__category">{{ poll().category }}</p>
     <h3>{{ poll().title }}</h3>
     <div class="survey-card__footer">
-      <p>{{ totalVotes() }} participants</p>
-      @if (poll().deadline; as deadline) {
-        <p class="survey-card__deadline">Ends {{ deadline | date: 'MMM d' }}</p>
-      } @else {
-        <p class="survey-card__deadline">No deadline</p>
-      }
+      <p class="survey-card__deadline">{{ deadlineLabel() }}</p>
     </div>
   </article>
 </a>

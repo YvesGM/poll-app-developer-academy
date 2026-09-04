@@ -56,8 +56,18 @@ h1 {
   font-size: 0.875rem;
   font-weight: 700;
 }
+.questions {
+  display: grid;
+  gap: 2.5rem;
+}
 .question {
   max-width: 35rem;
+}
+.question-number {
+  margin: 0 0 0.35rem;
+  color: var(--color-result);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 .question h2 {
   margin: 0 0 0.5rem;
@@ -78,6 +88,13 @@ h1 {
 .survey-results > h2 {
   margin: 0 0 2rem;
   font: 400 2rem/1 var(--font-heading);
+}
+.result-question + .result-question {
+  margin-top: 2.5rem;
+}
+.result-question h3 {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
 }
 .survey-results > h2 span {
   margin-left: 0.5rem;

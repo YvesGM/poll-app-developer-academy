@@ -12,11 +12,18 @@ export interface Poll {
   id: string;
   category: PollCategory;
   title: string;
-  question: string;
   description: string | null;
   deadline: Date | null;
-  options: PollOption[];
+  questions: PollQuestion[];
   createdAt: Date;
+}
+
+export interface PollQuestion {
+  id: string;
+  text: string;
+  position: number;
+  allowMultiple: boolean;
+  options: PollOption[];
 }
 
 export interface PollOption {
@@ -28,8 +35,13 @@ export interface PollOption {
 export interface CreatePollInput {
   category: PollCategory;
   title: string;
-  question: string;
   description: string | null;
   deadline: Date | null;
+  questions: CreatePollQuestionInput[];
+}
+
+export interface CreatePollQuestionInput {
+  question: string;
+  allowMultiple: boolean;
   options: string[];
 }

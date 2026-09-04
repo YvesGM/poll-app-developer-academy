@@ -1,6 +1,6 @@
 import { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
-const REALTIME_TABLES = ['polls', 'poll_options', 'votes'] as const;
+const REALTIME_TABLES = ['polls', 'poll_questions', 'poll_options', 'votes'] as const;
 const REALTIME_CHANNEL_NAME = 'poll-app-live-updates';
 
 /**

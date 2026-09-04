@@ -16,11 +16,13 @@ const supabaseStub = {
 };
 const voterIdentityStub = {
   hasVoted: () => false,
+  hasVotedOption: () => false,
   markVoted(): void {},
+  markVotedOption(): void {},
   voterToken: 'voter-token',
 };
 const repositoryStub = {
-  fetchSnapshot: async () => ({ polls: [], options: [], votes: [] }),
+  fetchSnapshot: async () => ({ polls: [], questions: [], options: [], votes: [] }),
 };
 
 describe('PollService', () => {

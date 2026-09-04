@@ -4,6 +4,7 @@
   --color-orange: #ffb770;
   --color-orange-soft: #ffcfa1;
   --color-purple: #35273a;
+  --color-purple-accent: #6c5690;
   --color-text: #221227;
   --color-card: #faf5fe;
   --color-surface: #fefdff;
@@ -16,6 +17,29 @@
 
 * {
   box-sizing: border-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-orange-soft) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--color-orange-soft);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-orange);
 }
 
 html {

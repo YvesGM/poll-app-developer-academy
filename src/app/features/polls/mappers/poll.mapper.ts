@@ -1,4 +1,4 @@
-import { Poll, PollCategory, PollOption } from '../models/poll.model';
+import { Poll, PollCategory, PollOption, PollQuestion } from '../models/poll.model';
 
 export interface PollRow {
   id: string;
@@ -10,9 +10,18 @@ export interface PollRow {
   created_at: string;
 }
 
+export interface PollQuestionRow {
+  id: string;
+  poll_id: string;
+  text: string;
+  position: number;
+  allow_multiple: boolean;
+}
+
 export interface PollOptionRow {
   id: string;
   poll_id: string;
+  question_id: string;
   text: string;
 }
 
@@ -20,98 +29,84 @@ export interface VoteRow {
   option_id: string;
 }
 
-/**
- * Builds vote totals indexed by option identifier.
- *
- * @param votes Persisted vote rows.
- * @returns Vote totals keyed by option identifier.
- */
+/** Builds vote totals indexed by option identifier. @param votes Persisted vote rows. @returns Vote totals keyed by option identifier. */
 export function buildVoteCounts(votes: VoteRow[]): Map<string, number> {
   const counts = new Map<string, number>();
-  for (const vote of votes) {
-    counts.set(vote.option_id, (counts.get(vote.option_id) ?? 0) + 1);
-  }
+  for (const vote of votes) counts.set(vote.option_id, (counts.get(vote.option_id) ?? 0) + 1);
   return counts;
 }
 
-/**
- * Maps one database poll row to the application model.
- *
- * @param row Persisted poll row.
- * @param options Options that belong to the poll.
- * @param voteCounts Vote totals keyed by option identifier.
- * @returns Application poll model.
- */
+/** Maps one persisted survey row. @param row Poll row. @param questions Question rows. @param options Option rows. @param voteCounts Vote totals. @returns Poll model. */
 export function mapPollRow(
   row: PollRow,
+  questions: PollQuestionRow[],
   options: PollOptionRow[],
   voteCounts: Map<string, number>,
 ): Poll {
   return {
     ...mapPollFields(row),
-    options: mapPollOptions(row.id, options, voteCounts),
+    questions: mapPollQuestions(row.id, questions, options, voteCounts),
   };
 }
 
-/**
- * Maps persisted scalar poll fields to the application model.
- * @param row Persisted poll row.
- * @returns Poll model fields excluding options.
- */
-function mapPollFields(row: PollRow): Omit<Poll, 'options'> {
+/** Maps persisted scalar poll fields. @param row Persisted poll row. @returns Poll fields excluding questions. */
+function mapPollFields(row: PollRow): Omit<Poll, 'questions'> {
   return {
     id: row.id,
     category: row.category,
     title: row.title,
-    question: row.question,
     description: row.description,
     deadline: row.deadline ? new Date(row.deadline) : null,
     createdAt: new Date(row.created_at),
   };
 }
 
-/**
- * Maps all persisted poll rows to application models.
- *
- * @param polls Persisted poll rows.
- * @param options Persisted option rows.
- * @param votes Persisted vote rows.
- * @returns Fully mapped polls including vote totals.
- */
-export function mapPollRows(polls: PollRow[], options: PollOptionRow[], votes: VoteRow[]): Poll[] {
+/** Maps complete persisted rows. @param polls Poll rows. @param questions Question rows. @param options Option rows. @param votes Vote rows. @returns Fully mapped polls. */
+export function mapPollRows(
+  polls: PollRow[],
+  questions: PollQuestionRow[],
+  options: PollOptionRow[],
+  votes: VoteRow[],
+): Poll[] {
   const voteCounts = buildVoteCounts(votes);
-  return polls.map((poll) => mapPollRow(poll, options, voteCounts));
+  return polls.map((poll) => mapPollRow(poll, questions, options, voteCounts));
 }
 
-/**
- * Maps the options that belong to one poll.
- *
- * @param pollId Poll identifier.
- * @param options Persisted option rows.
- * @param voteCounts Vote totals keyed by option identifier.
- * @returns Application option models for the requested poll.
- */
-function mapPollOptions(
+/** Maps questions for one survey. @param pollId Survey id. @param questions Question rows. @param options Option rows. @param voteCounts Vote totals. @returns Question models. */
+function mapPollQuestions(
   pollId: string,
+  questions: PollQuestionRow[],
+  options: PollOptionRow[],
+  voteCounts: Map<string, number>,
+): PollQuestion[] {
+  return questions
+    .filter((question) => question.poll_id === pollId)
+    .sort((left, right) => left.position - right.position)
+    .map((question) => mapPollQuestion(question, options, voteCounts));
+}
+
+/** Maps one question row. @param question Question row. @param options Option rows. @param voteCounts Vote totals. @returns Question model. */
+function mapPollQuestion(
+  question: PollQuestionRow,
+  options: PollOptionRow[],
+  voteCounts: Map<string, number>,
+): PollQuestion {
+  return {
+    id: question.id,
+    text: question.text,
+    position: question.position,
+    allowMultiple: question.allow_multiple,
+    options: mapPollOptions(question.id, options, voteCounts),
+  };
+}
+
+/** Maps options for one question. @param questionId Question id. @param options Option rows. @param voteCounts Vote totals. @returns Option models. */
+function mapPollOptions(
+  questionId: string,
   options: PollOptionRow[],
   voteCounts: Map<string, number>,
 ): PollOption[] {
   return options
-    .filter((option) => option.poll_id === pollId)
-    .map((option) => mapPollOption(option, voteCounts));
-}
-
-/**
- * Maps one persisted option row to the application model.
- *
- * @param option Persisted option row.
- * @param voteCounts Vote totals keyed by option identifier.
- * @returns Application option model.
- */
-function mapPollOption(option: PollOptionRow, voteCounts: Map<string, number>): PollOption {
-  return {
-    id: option.id,
-    text: option.text,
-    votes: voteCounts.get(option.id) ?? 0,
-  };
+    .filter((option) => option.question_id === questionId)
+    .map((option) => ({ id: option.id, text: option.text, votes: voteCounts.get(option.id) ?? 0 }));
 }

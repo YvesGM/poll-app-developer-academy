@@ -2,7 +2,7 @@
   <header class="create__header">
     <div>
       <span class="draft-pill">Draft</span>
-      <h1>Create Survey</h1>
+      <h1>Create new survey</h1>
     </div>
     <button class="button button--secondary" type="button" [disabled]="saving()" (click)="cancel()">
       Cancel
@@ -10,96 +10,125 @@
   </header>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
-    <section class="survey-fields" aria-label="Survey information">
-      <div class="field">
-        <label for="title">Survey Name*</label
-        ><input id="title" type="text" formControlName="title" placeholder="Name your survey" />
-        @if (form.controls.title.touched && form.controls.title.invalid) {
-          <p class="field-error">Enter a name with no more than 120 characters.</p>
-        }
-      </div>
-      <div class="field field--description">
-        <label for="description">Description</label
-        ><textarea
-          id="description"
-          formControlName="description"
-          placeholder="Describe your survey"
-        ></textarea>
-        @if (form.controls.description.touched && form.controls.description.invalid) {
-          <p class="field-error">Use no more than 1000 characters.</p>
-        }
-      </div>
-      <div class="field">
-        <label for="deadline">End date</label
-        ><input id="deadline" type="datetime-local" formControlName="deadline" />
-      </div>
-      <div class="field">
-        <label for="category">Category*</label
-        ><select id="category" formControlName="category">
-          @for (category of categories; track category) {
-            <option [value]="category">{{ category }}</option>
-          }
-        </select>
-      </div>
-    </section>
-
-    <section class="question-block" aria-labelledby="question-label">
-      <header><span>Question 1</span></header>
-      <div class="field">
-        <label id="question-label" for="question">Question*</label
-        ><input
-          id="question"
-          type="text"
-          formControlName="question"
-          placeholder="Type your question"
-        />
-        @if (form.controls.question.touched && form.controls.question.invalid) {
-          <p class="field-error">Enter a question between 3 and 250 characters.</p>
-        }
-      </div>
-
-      <fieldset formArrayName="options">
-        <legend>Answers*</legend>
-        @for (option of options.controls; track option) {
-          <div class="answer-field">
-            <input
-              [id]="'option-' + $index"
-              type="text"
-              [formControlName]="$index"
-              [attr.aria-label]="'Answer ' + ($index + 1)"
-              placeholder="Type your answer"
-            />
-            <button
-              class="delete-button"
-              type="button"
-              [disabled]="options.length <= 2"
-              [attr.aria-label]="'Delete answer ' + ($index + 1)"
-              (click)="removeOption($index)"
-            ></button>
-            @if (option.touched && option.invalid) {
-              <p class="field-error">Enter an answer with no more than 120 characters.</p>
+    <div class="create__content">
+      <section class="survey-fields" aria-label="Survey information">
+        <div class="survey-fields__left">
+          <div class="field">
+            <label for="title">Survey name</label>
+            <div class="input-with-action">
+              <input id="title" type="text" formControlName="title" />
+              <button class="field-delete" type="button" aria-label="Clear survey name" (click)="clearTitle()"></button>
+            </div>
+            @if (form.controls.title.touched && form.controls.title.invalid) {
+              <p class="field-error">Enter a name with no more than 120 characters.</p>
             }
           </div>
-        }
-        @if (options.touched && options.hasError('duplicateOptions')) {
-          <p class="field-error">Each answer must be unique.</p>
-        }
-      </fieldset>
-      <button class="add-answer" type="button" (click)="addOption()">
-        <img src="assets/icons/add.svg" width="24" height="24" alt="" /> Add answer
-      </button>
-    </section>
+
+          <div class="compact-fields">
+            <div class="field field--deadline">
+              <label for="deadline">Set end date (optional)</label>
+              <div class="input-with-action">
+                <input id="deadline" type="datetime-local" formControlName="deadline" />
+                <button class="field-delete" type="button" aria-label="Clear end date" (click)="clearDeadline()"></button>
+              </div>
+            </div>
+
+            <div class="field field--category">
+              <label class="visually-hidden" for="category">Category</label>
+              <select id="category" formControlName="category" aria-label="Choose category">
+                <option [ngValue]="null" disabled>Choose category</option>
+                @for (category of categories; track category) {
+                  <option [ngValue]="category">{{ category }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field field--description">
+          <label for="description">Describing text <span>(optional)</span></label>
+          <textarea id="description" formControlName="description"></textarea>
+          @if (form.controls.description.touched && form.controls.description.invalid) {
+            <p class="field-error">Use no more than 1000 characters.</p>
+          }
+        </div>
+      </section>
+
+      <div class="question-area">
+        <div class="questions" formArrayName="questions">
+          @for (questionGroup of questions.controls; track questionGroup; let questionIndex = $index) {
+            <section class="question-block" [formGroupName]="questionIndex">
+              <header><span>{{ questionIndex + 1 }}. Question</span></header>
+              <div class="field">
+                <input
+                  [id]="'question-' + questionIndex"
+                  type="text"
+                  formControlName="question"
+                />
+                @if (questionGroup.controls.question.touched && questionGroup.controls.question.invalid) {
+                  <p class="field-error">Enter a question between 3 and 250 characters.</p>
+                }
+              </div>
+
+              <div class="answers-heading">
+                <span>Answers</span>
+                <label class="multiple-answers">
+                  <input type="checkbox" formControlName="allowMultiple" />
+                  <span>Allow multiple answers.</span>
+                </label>
+              </div>
+
+              <fieldset formArrayName="options" aria-label="Answers">
+                @for (option of questionGroup.controls.options.controls; track option; let optionIndex = $index) {
+                  <div class="answer-field">
+                    <span class="answer-label">{{ optionIndex === 0 ? 'A.' : optionIndex === 1 ? 'B.' : optionIndex + 1 + '.' }}</span>
+                    <input
+                      [id]="'question-' + questionIndex + '-option-' + optionIndex"
+                      type="text"
+                      [formControlName]="optionIndex"
+                      [attr.aria-label]="'Question ' + (questionIndex + 1) + ' answer ' + (optionIndex + 1)"
+                    />
+                    <button
+                      class="delete-button"
+                      type="button"
+                      [disabled]="questionGroup.controls.options.length <= 2"
+                      [attr.aria-label]="'Delete answer ' + (optionIndex + 1)"
+                      (click)="removeOption(questionIndex, optionIndex)"
+                    ></button>
+                    @if (option.touched && option.invalid) {
+                      <p class="field-error">Enter an answer with no more than 120 characters.</p>
+                    }
+                  </div>
+                }
+                @if (
+                  questionGroup.controls.options.touched &&
+                  questionGroup.controls.options.hasError('duplicateOptions')
+                ) {
+                  <p class="field-error">Each answer must be unique.</p>
+                }
+              </fieldset>
+
+              <button class="add-answer" type="button" (click)="addOption(questionIndex)">
+                Add answer
+                <img src="assets/icons/add.svg" width="24" height="24" alt="" />
+              </button>
+            </section>
+          }
+        </div>
+
+        <button class="add-question" type="button" (click)="addQuestion()">
+          Add next question
+          <img src="assets/icons/add.svg" width="20" height="20" alt="" />
+        </button>
+      </div>
+    </div>
 
     @if (error()) {
       <p class="form-error" role="alert">{{ error() }}</p>
     }
     <footer class="create__footer">
       <button class="button button--primary" type="submit" [disabled]="saving()">
-        @if (saving()) {
-          Publishing...
-        } @else {
-          Publish Survey
-        }
+        @if (saving()) { Publishing... } @else { Publish }
       </button>
     </footer>
   </form>

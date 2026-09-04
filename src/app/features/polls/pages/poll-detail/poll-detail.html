@@ -11,51 +11,54 @@
   } @else if (poll(); as currentPoll) {
     <section class="survey-panel" aria-labelledby="survey-title">
       <span class="status-pill">Published</span>
-      <p class="survey-meta">
-        {{ currentPoll.createdAt | date: 'MMM d, y' }} · {{ currentPoll.category }}
-      </p>
+      <p class="survey-meta">{{ currentPoll.createdAt | date: 'MMM d, y' }} · {{ currentPoll.category }}</p>
       <h1 id="survey-title">{{ currentPoll.title }}</h1>
       @if (currentPoll.description) {
         <p class="survey-description">{{ currentPoll.description }}</p>
       }
       <p class="survey-deadline">
-        @if (currentPoll.deadline; as deadline) {
-          Ends {{ deadline | date: 'MMM d, y' }}
-        } @else {
-          No deadline
-        }
+        @if (currentPoll.deadline; as deadline) { Ends {{ deadline | date: 'MMM d, y' }} } @else { No deadline }
       </p>
 
-      <section class="question" aria-labelledby="question-heading">
-        <h2 id="question-heading">{{ currentPoll.question }}</h2>
-        @if (isPast()) {
-          <p class="voting-note">This survey has ended. Voting is no longer possible.</p>
-        } @else if (hasVoted()) {
-          <p class="voting-note">You have already voted in this survey.</p>
-        } @else {
-          <p class="voting-note">Choose one answer.</p>
+      <div class="questions">
+        @for (question of currentPoll.questions; track question.id; let questionIndex = $index) {
+          <section class="question" [attr.aria-labelledby]="'question-heading-' + question.id">
+            <p class="question-number">Question {{ questionIndex + 1 }}</p>
+            <h2 [id]="'question-heading-' + question.id">{{ question.text }}</h2>
+            @if (isPast()) {
+              <p class="voting-note">This survey has ended. Voting is no longer possible.</p>
+            } @else if (!question.allowMultiple && hasVoted(question.id)) {
+              <p class="voting-note">You have already voted on this question.</p>
+            } @else if (question.allowMultiple) {
+              <p class="voting-note">Choose one or more answers.</p>
+            } @else {
+              <p class="voting-note">Choose one answer.</p>
+            }
+            <div class="answers">
+              @for (option of question.options; track option.id) {
+                <app-poll-option
+                  [option]="option"
+                  [checked]="isOptionSelected(question.id, option.id)"
+                  [disabled]="isOptionDisabled(question.id, option.id, question.allowMultiple)"
+                  (voted)="vote(question.id, $event, question.allowMultiple)"
+                />
+              }
+            </div>
+          </section>
         }
-        <div class="answers">
-          @for (option of currentPoll.options; track option.id) {
-            <app-poll-option
-              [option]="option"
-              [checked]="selectedOptionId() === option.id"
-              [disabled]="isPast() || hasVoted() || busy()"
-              (voted)="vote($event)"
-            />
-          }
-        </div>
-      </section>
+      </div>
     </section>
 
     <aside class="survey-results" aria-labelledby="results-heading">
       <h2 id="results-heading">Results <span>LIVE</span></h2>
-      <app-poll-results [options]="currentPoll.options" />
+      @for (question of currentPoll.questions; track question.id; let questionIndex = $index) {
+        <section class="result-question">
+          <h3>Question {{ questionIndex + 1 }}</h3>
+          <app-poll-results [options]="question.options" />
+        </section>
+      }
     </aside>
   } @else {
-    <section class="not-found">
-      <h1>Survey not found</h1>
-      <p>The requested survey does not exist.</p>
-    </section>
+    <section class="not-found"><h1>Survey not found</h1><p>The requested survey does not exist.</p></section>
   }
 </main>

@@ -23,8 +23,7 @@ export class PollDetail {
   protected readonly loading = this.pollService.loading;
   protected readonly error = this.pollService.error;
   protected readonly busy = signal(false);
-  protected readonly selectedOptionId = signal<string | null>(null);
-
+  protected readonly selectedOptions = signal<ReadonlySet<string>>(new Set());
   protected readonly poll = computed(() => this.pollService.getPollById(this.pollId));
 
   protected readonly isPast = computed(() => {
@@ -33,23 +32,45 @@ export class PollDetail {
     return poll ? this.pollService.isPast(poll, referenceDate) : false;
   });
 
-  protected readonly hasVoted = computed(() => this.pollService.hasVoted(this.pollId));
+  /** Returns whether this browser already voted on a question. @param questionId Question id. @returns Vote state. */
+  protected hasVoted(questionId: string): boolean {
+    return this.pollService.hasVoted(this.pollId, questionId);
+  }
 
-  /**
-   * Submits one option while preventing concurrent or invalid votes.
-   * @param optionId Selected option identifier.
-   */
-  protected async vote(optionId: string): Promise<void> {
-    if (this.busy() || this.hasVoted() || this.isPast()) {
-      return;
-    }
+  /** Returns whether one answer is selected locally or persisted for this browser. */
+  protected isOptionSelected(questionId: string, optionId: string): boolean {
+    return this.selectedOptions().has(this.selectionKey(questionId, optionId))
+      || this.pollService.hasVotedOption(this.pollId, questionId, optionId);
+  }
 
+  /** Returns whether an answer control must be disabled. */
+  protected isOptionDisabled(questionId: string, optionId: string, allowMultiple: boolean): boolean {
+    if (this.isPast() || this.busy()) return true;
+    if (allowMultiple) return this.isOptionSelected(questionId, optionId);
+    return this.hasVoted(questionId);
+  }
+
+  /** Submits one answer. @param questionId Question id. @param optionId Option id. @param allowMultiple Multiple-answer mode. */
+  protected async vote(questionId: string, optionId: string, allowMultiple: boolean): Promise<void> {
+    if (this.isOptionDisabled(questionId, optionId, allowMultiple)) return;
     this.busy.set(true);
     try {
-      const saved = await this.pollService.vote(this.pollId, optionId);
-      if (saved) this.selectedOptionId.set(optionId);
+      const saved = await this.pollService.vote(this.pollId, questionId, optionId, allowMultiple);
+      if (saved) this.storeSelection(questionId, optionId);
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /** Stores one local selection. @param questionId Question id. @param optionId Option id. */
+  private storeSelection(questionId: string, optionId: string): void {
+    const next = new Set(this.selectedOptions());
+    next.add(this.selectionKey(questionId, optionId));
+    this.selectedOptions.set(next);
+  }
+
+  /** Builds one local selection key. @param questionId Question id. @param optionId Option id. @returns Selection key. */
+  private selectionKey(questionId: string, optionId: string): string {
+    return `${questionId}:${optionId}`;
   }
 }

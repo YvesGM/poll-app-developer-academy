@@ -8,11 +8,10 @@ const poll: Poll = {
   id: 'poll-1',
   category: 'Technology',
   title: 'Test survey',
-  question: 'Which option?',
   description: null,
   deadline: null,
   createdAt: new Date('2026-09-01T10:00:00Z'),
-  options: [{ id: 'option-1', text: 'First', votes: 2 }],
+  questions: [{ id: 'question-1', text: 'Which option?', position: 0, allowMultiple: false, options: [{ id: 'option-1', text: 'First', votes: 2 }] }],
 };
 
 describe('PollCard', () => {
