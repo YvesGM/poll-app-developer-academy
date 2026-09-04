@@ -10,6 +10,9 @@ const poll: Poll = {
   title: 'Test survey',
   description: null,
   deadline: null,
+  status: 'active',
+  completionReason: null,
+  completedAt: null,
   createdAt: new Date('2026-09-01T10:00:00Z'),
   questions: [{ id: 'question-1', text: 'Which option?', position: 0, allowMultiple: false, options: [{ id: 'option-1', text: 'First', votes: 2 }] }],
 };

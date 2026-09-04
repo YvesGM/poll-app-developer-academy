@@ -7,6 +7,7 @@ import { PollService } from '../../services/poll';
 import { PollDetail } from './poll-detail';
 
 const pollServiceStub = {
+  completePoll: async () => true,
   error: signal<string | null>(null).asReadonly(),
   getPollById: () => undefined,
   hasVoted: () => false,

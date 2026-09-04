@@ -46,6 +46,12 @@ html {
   background: var(--color-purple);
 }
 
+@media (min-width: 1921px) {
+  html {
+    font-size: clamp(16px, 0.833333vw, 64px);
+  }
+}
+
 body {
   min-width: 20rem;
   margin: 0;

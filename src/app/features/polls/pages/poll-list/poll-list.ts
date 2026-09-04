@@ -1,10 +1,11 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 
 import { CurrentTimeService } from '../../../../core/time/current-time';
 import { AppLogo } from '../../../../shared/components/app-logo/app-logo';
 import { HeroVisual } from '../../../../shared/components/hero-visual/hero-visual';
 import { PollCard } from '../../components/poll-card/poll-card';
-import { POLL_CATEGORIES, Poll } from '../../models/poll.model';
+import { POLL_CATEGORIES, POLL_CATEGORY_LABELS, Poll } from '../../models/poll.model';
 import { PollService } from '../../services/poll';
 import {
   CategoryFilter,
@@ -16,25 +17,17 @@ import { PollCreate } from '../poll-create/poll-create';
 
 type SurveyTab = 'active' | 'past';
 
-const ENDING_SOON_WINDOW_MS = 24 * 60 * 60 * 1000;
-const CATEGORY_LABELS: Record<CategoryFilter, string> = {
-  All: 'All Surveys',
-  Education: 'Education & Learning',
-  Entertainment: 'Gaming & Entertainment',
-  Lifestyle: 'Lifestyle & Preferences',
-  Other: 'Other',
-  Technology: 'Technology & Innovation',
-};
-
+const ENDING_SOON_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 @Component({
   selector: 'app-poll-list',
   imports: [AppLogo, HeroVisual, PollCard, PollCreate],
   templateUrl: './poll-list.html',
   styleUrl: './poll-list.scss',
 })
-export class PollList {
+export class PollList implements OnDestroy {
   private readonly pollService = inject(PollService);
   private readonly currentTimeService = inject(CurrentTimeService);
+  private readonly document = inject(DOCUMENT);
 
   protected readonly loading = this.pollService.loading;
   protected readonly error = this.pollService.error;
@@ -46,6 +39,7 @@ export class PollList {
   protected readonly publishConfirmationOpen = signal(false);
   private readonly currentTime = this.currentTimeService.currentTime;
   private publishConfirmationTimer: ReturnType<typeof setTimeout> | null = null;
+  private modalTrigger: HTMLElement | null = null;
 
   protected readonly activePolls = computed(() => {
     const referenceDate = this.currentTime();
@@ -97,6 +91,14 @@ export class PollList {
     this.categoryMenuOpen.update((open) => !open);
   }
 
+  /** Moves focus through category options with arrow keys. @param event Keyboard event. */
+  protected handleCategoryMenuKeydown(event: KeyboardEvent): void {
+    if (!this.categoryMenuOpen()) return;
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    this.moveCategoryFocus(event);
+  }
+
   /** Closes the category menu. */
   protected closeCategoryMenu(): void {
     this.categoryMenuOpen.set(false);
@@ -126,19 +128,23 @@ export class PollList {
    * @returns Figma-aligned display label.
    */
   protected categoryLabel(category: CategoryFilter): string {
-    return CATEGORY_LABELS[category];
+    return category === 'All' ? 'All Surveys' : POLL_CATEGORY_LABELS[category];
   }
 
   /** Opens the create-survey modal and clears stale service errors. */
   protected openCreateModal(): void {
     this.pollService.clearError();
+    this.modalTrigger = this.document.activeElement as HTMLElement | null;
     this.createModalOpen.set(true);
+    this.setBackgroundScrollLocked(true);
   }
 
   /** Closes the create-survey modal and clears stale service errors. */
   protected closeCreateModal(): void {
     this.pollService.clearError();
     this.createModalOpen.set(false);
+    this.setBackgroundScrollLocked(false);
+    setTimeout(() => this.restoreModalTrigger());
   }
 
   /**
@@ -147,6 +153,7 @@ export class PollList {
    */
   protected surveyCreated(poll: Poll): void {
     this.createModalOpen.set(false);
+    this.setBackgroundScrollLocked(false);
     this.showPublishConfirmation();
     this.selectCreatedPollTab(poll);
     this.selectedCategory.set('All');
@@ -174,6 +181,45 @@ export class PollList {
     if (this.publishConfirmationTimer === null) return;
     clearTimeout(this.publishConfirmationTimer);
     this.publishConfirmationTimer = null;
+  }
+
+
+  /** Restores page scrolling when the component is destroyed. */
+  ngOnDestroy(): void {
+    this.setBackgroundScrollLocked(false);
+  }
+
+  /** Locks or unlocks the page behind the modal. @param locked Whether scrolling is blocked. */
+  private setBackgroundScrollLocked(locked: boolean): void {
+    this.document.body.style.overflow = locked ? 'hidden' : '';
+  }
+
+  /** Restores focus to the control that opened the create dialog. */
+  private restoreModalTrigger(): void {
+    this.modalTrigger?.focus();
+    this.modalTrigger = null;
+  }
+
+  /** Focuses the next category option for an arrow-key event. @param event Keyboard event. */
+  private moveCategoryFocus(event: KeyboardEvent): void {
+    const options = this.categoryOptionButtons(event);
+    if (!options.length) return;
+    const current = options.indexOf(this.document.activeElement as HTMLButtonElement);
+    options[this.categoryTargetIndex(event.key, current, options.length)]?.focus();
+  }
+
+  /** Returns category option buttons from the active menu. @param event Keyboard event. */
+  private categoryOptionButtons(event: KeyboardEvent): HTMLButtonElement[] {
+    const menu = event.currentTarget as HTMLElement;
+    return Array.from(menu.querySelectorAll<HTMLButtonElement>('.category-menu__options button'));
+  }
+
+  /** Resolves the requested category option index. @param key Key name. @param current Current index. @param length Option count. */
+  private categoryTargetIndex(key: string, current: number, length: number): number {
+    if (key === 'Home') return 0;
+    if (key === 'End') return length - 1;
+    if (key === 'ArrowUp') return current <= 0 ? length - 1 : current - 1;
+    return current < 0 || current >= length - 1 ? 0 : current + 1;
   }
 
   /** Reloads all survey data from Supabase. */

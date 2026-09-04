@@ -6,5 +6,5 @@
   (click)="vote()"
 >
   <span class="answer__box" aria-hidden="true"><img src="assets/icons/check.svg" alt="" /></span>
-  <span>{{ option().text }}</span>
+  <span><b>{{ answerLabel() }}</b> {{ option().text }}</span>
 </button>

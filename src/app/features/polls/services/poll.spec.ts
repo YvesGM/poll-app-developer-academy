@@ -1,5 +1,7 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SupabaseService } from '../../../core/supabase/supabase';
+import { CurrentTimeService } from '../../../core/time/current-time';
 import { VoterIdentityService } from '../../../core/voter/voter-identity';
 import { PollService } from './poll';
 import { PollRepository } from './poll-repository';
@@ -21,7 +23,11 @@ const voterIdentityStub = {
   markVotedOption(): void {},
   voterToken: 'voter-token',
 };
+const currentTimeStub = {
+  currentTime: signal(new Date('2026-09-04T10:00:00Z')).asReadonly(),
+};
 const repositoryStub = {
+  completeExpiredPolls: async () => 0,
   fetchSnapshot: async () => ({ polls: [], questions: [], options: [], votes: [] }),
 };
 
@@ -32,6 +38,7 @@ describe('PollService', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: SupabaseService, useValue: supabaseStub },
+        { provide: CurrentTimeService, useValue: currentTimeStub },
         { provide: VoterIdentityService, useValue: voterIdentityStub },
         { provide: PollRepository, useValue: repositoryStub },
       ],

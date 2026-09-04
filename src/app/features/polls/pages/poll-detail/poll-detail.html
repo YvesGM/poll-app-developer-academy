@@ -1,6 +1,6 @@
 <header class="detail-header">
   <a routerLink="/" aria-label="Back to surveys"><app-logo tone="dark" /></a>
-  <a class="button button--primary" routerLink="/">Create Survey</a>
+  <button class="button button--primary detail-create" type="button" (click)="openCreateModal()">Create survey</button>
 </header>
 
 <main class="detail-page">
@@ -10,33 +10,30 @@
     <p role="alert">{{ error() }}</p>
   } @else if (poll(); as currentPoll) {
     <section class="survey-panel" aria-labelledby="survey-title">
-      <span class="status-pill">Published</span>
-      <p class="survey-meta">{{ currentPoll.createdAt | date: 'MMM d, y' }} · {{ currentPoll.category }}</p>
+      <a class="detail-close" routerLink="/" aria-label="Close survey"></a>
+      <span class="status-pill">{{ isPast() ? 'Completed' : 'Published' }}</span>
+      <div class="survey-meta">
+        <span>
+          @if (currentPoll.deadline; as deadline) { Ends on {{ deadline | date: 'dd.MM.yyyy' }} } @else { No deadline }
+        </span>
+        <span>Category: {{ categoryLabels[currentPoll.category] }}</span>
+      </div>
       <h1 id="survey-title">{{ currentPoll.title }}</h1>
       @if (currentPoll.description) {
         <p class="survey-description">{{ currentPoll.description }}</p>
       }
-      <p class="survey-deadline">
-        @if (currentPoll.deadline; as deadline) { Ends {{ deadline | date: 'MMM d, y' }} } @else { No deadline }
-      </p>
 
       <div class="questions">
         @for (question of currentPoll.questions; track question.id; let questionIndex = $index) {
           <section class="question" [attr.aria-labelledby]="'question-heading-' + question.id">
-            <p class="question-number">Question {{ questionIndex + 1 }}</p>
-            <h2 [id]="'question-heading-' + question.id">{{ question.text }}</h2>
-            @if (isPast()) {
-              <p class="voting-note">This survey has ended. Voting is no longer possible.</p>
-            } @else if (!question.allowMultiple && hasVoted(question.id)) {
-              <p class="voting-note">You have already voted on this question.</p>
-            } @else if (question.allowMultiple) {
-              <p class="voting-note">Choose one or more answers.</p>
-            } @else {
-              <p class="voting-note">Choose one answer.</p>
+            <h2 [id]="'question-heading-' + question.id">{{ questionIndex + 1 }}. {{ question.text }}</h2>
+            @if (question.allowMultiple) {
+              <p class="voting-note">More than one answers are possible.</p>
             }
             <div class="answers">
-              @for (option of question.options; track option.id) {
+              @for (option of question.options; track option.id; let optionIndex = $index) {
                 <app-poll-option
+                  [label]="optionIndex"
                   [option]="option"
                   [checked]="isOptionSelected(question.id, option.id)"
                   [disabled]="isOptionDisabled(question.id, option.id, question.allowMultiple)"
@@ -47,13 +44,41 @@
           </section>
         }
       </div>
+
+      @if (!isPast()) {
+        <button
+          class="button button--primary complete-survey"
+          type="button"
+          [disabled]="busy()"
+          (click)="completeSurvey()"
+        >
+          <span class="complete-label complete-label--desktop">Complete survey</span>
+          <span class="complete-label complete-label--mobile">Complete</span>
+        </button>
+      }
     </section>
 
-    <aside class="survey-results" aria-labelledby="results-heading">
-      <h2 id="results-heading">Results <span>LIVE</span></h2>
+    <button
+      class="results-toggle"
+      type="button"
+      [attr.aria-expanded]="resultsOpen()"
+      aria-controls="survey-results-panel"
+      (click)="toggleResults()"
+    >
+      <span>{{ resultsOpen() ? 'Close results' : 'See results' }}</span>
+      <span class="results-toggle__arrow" aria-hidden="true"></span>
+    </button>
+
+    <aside
+      id="survey-results-panel"
+      class="survey-results"
+      [class.survey-results--closed]="!resultsOpen()"
+      aria-labelledby="results-heading"
+    >
+      <h2 id="results-heading">Survey results <span>LIVE</span></h2>
       @for (question of currentPoll.questions; track question.id; let questionIndex = $index) {
         <section class="result-question">
-          <h3>Question {{ questionIndex + 1 }}</h3>
+          <h3>{{ questionIndex + 1 }}. {{ question.text }}</h3>
           <app-poll-results [options]="question.options" />
         </section>
       }
@@ -62,3 +87,20 @@
     <section class="not-found"><h1>Survey not found</h1><p>The requested survey does not exist.</p></section>
   }
 </main>
+
+@if (createModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <div class="modal-mobile-header">
+      <app-logo tone="dark" />
+    </div>
+    <section
+      class="modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create Survey"
+      (click)="$event.stopPropagation()"
+    >
+      <app-poll-create (created)="surveyCreated()" (cancelled)="closeCreateModal()" />
+    </section>
+  </div>
+}

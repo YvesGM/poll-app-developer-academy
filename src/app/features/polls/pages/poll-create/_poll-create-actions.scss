@@ -1,0 +1,194 @@
+.answer-actions {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin: 1rem 0 0 1.75rem;
+}
+.add-answer {
+  padding: 0;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 0.35rem;
+}
+.add-answer:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.answer-limit {
+  color: var(--color-surface);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.add-answer img {
+  width: 1.5rem;
+  height: 1.5rem;
+  filter: brightness(0) invert(1);
+}
+
+.add-question {
+  justify-self: start;
+  margin-top: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgb(255 183 112 / 28%);
+  font-size: 1rem;
+  transition: background-color 180ms ease;
+}
+.add-question:hover {
+  color: var(--color-purple);
+  background: var(--color-orange-soft);
+}
+
+.add-question img {
+  width: 1.25rem;
+  height: 1.25rem;
+  filter: brightness(0) invert(1);
+}
+
+.create__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+.create__footer .button--primary {
+  position: relative;
+  width: 5.5rem;
+  overflow: hidden;
+  justify-content: flex-start;
+  white-space: nowrap;
+  transition:
+    width 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 260ms ease;
+}
+.create__footer .button--primary::after {
+  position: absolute;
+  right: 0.625rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  opacity: 0;
+  background: currentColor;
+  content: '';
+  mask: url('/assets/icons/check.svg') center / contain no-repeat;
+  transform: translateX(-0.35rem) scale(0.8);
+  transition:
+    opacity 220ms ease 80ms,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .create__footer .button--primary:hover {
+    width: 6.75rem;
+    justify-content: flex-start;
+  }
+  .create__footer .button--primary:hover::after {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.validation-notice {
+  position: absolute;
+  right: 7.5rem;
+  bottom: 0.75rem;
+  z-index: 4;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0 0.75rem 0 0;
+  color: #b42318;
+  background: #fff1f0;
+  font-size: 0.75rem;
+  animation: validation-notice 3200ms ease both;
+}
+
+@keyframes validation-notice {
+  0%, 100% { opacity: 0; }
+  10%, 85% { opacity: 1; }
+}
+
+.field--category {
+  position: relative;
+  z-index: 8;
+  align-self: start;
+  grid-column: 2;
+  grid-row: 1;
+  padding-bottom: 0.1rem;
+}
+
+.field--deadline {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.category-select__trigger {
+  position: relative;
+  width: 100%;
+  min-height: 2rem;
+  padding: 0 1.75rem 0 0;
+  border: 0;
+  color: var(--color-surface);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.category-select__trigger::after {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.1rem;
+  width: 0.875rem;
+  height: 0.5rem;
+  background: var(--color-surface);
+  content: '';
+  mask: url('/assets/icons/dropdown.svg') center / contain no-repeat;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.category-select__trigger:hover::after {
+  background: var(--color-result);
+}
+
+.field--category--open .category-select__trigger::after {
+  transform: rotate(180deg);
+}
+
+.category-select__trigger:focus,
+.category-select__trigger:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.category-select__trigger.is-invalid {
+  box-shadow: inset 0 0 0 2px #b42318;
+}
+
+.category-select__options {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  width: max(100%, 13.5rem);
+  margin: 0;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
+  background: var(--color-surface);
+  box-shadow: 0 0.75rem 2rem rgb(34 18 39 / 28%);
+  list-style: none;
+}
+
+.category-select__options button {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: 0.25rem;
+  color: var(--color-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.category-select__options button:hover,
+.category-select__options button:focus-visible,
+.category-select__options button[aria-selected='true'] {
+  background: var(--color-card);
+}

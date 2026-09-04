@@ -1,7 +1,8 @@
-import { Injectable, OnDestroy, signal } from '@angular/core';
+import { effect, Injectable, OnDestroy, signal } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 import { SupabaseService } from '../../../core/supabase/supabase';
+import { CurrentTimeService } from '../../../core/time/current-time';
 import { VoterIdentityService } from '../../../core/voter/voter-identity';
 import { mapPollRow, mapPollRows, PollRow } from '../mappers/poll.mapper';
 import { CreatePollInput, Poll } from '../models/poll.model';
@@ -29,6 +30,7 @@ export class PollService implements OnDestroy {
    */
   constructor(
     private readonly supabase: SupabaseService,
+    private readonly currentTimeService: CurrentTimeService,
     private readonly voterIdentity: VoterIdentityService,
     private readonly repository: PollRepository,
   ) {
@@ -36,7 +38,16 @@ export class PollService implements OnDestroy {
       this.supabase.client,
       () => void this.loadPolls(false),
     );
+    this.startDeadlineSync();
     void this.loadPolls();
+  }
+
+  /** Synchronizes expired survey deadlines whenever the shared clock advances. */
+  private startDeadlineSync(): void {
+    effect(() => {
+      this.currentTimeService.currentTime();
+      void this.syncExpiredPolls();
+    });
   }
 
   /** Removes the Supabase realtime channel when the service is destroyed. */
@@ -77,6 +88,7 @@ export class PollService implements OnDestroy {
    * @returns Whether the survey is past.
    */
   isPast(poll: Poll, referenceDate = new Date()): boolean {
+    if (poll.status === 'completed') return true;
     return poll.deadline !== null && poll.deadline.getTime() <= referenceDate.getTime();
   }
 
@@ -128,6 +140,19 @@ export class PollService implements OnDestroy {
     }
   }
 
+  /** Completes one active survey manually. @param pollId Survey id. @returns Whether completion succeeded. */
+  async completePoll(pollId: string): Promise<boolean> {
+    this.clearError();
+    try {
+      const completed = await this.repository.completePoll(pollId);
+      if (completed) await this.loadPolls(false);
+      return completed;
+    } catch (error) {
+      this.setError(error, 'Failed to complete survey.');
+      return false;
+    }
+  }
+
   /**
    * Persists one vote for a survey option.
    *
@@ -137,10 +162,7 @@ export class PollService implements OnDestroy {
    * @returns Whether the vote was stored successfully.
    */
   async vote(
-    pollId: string,
-    questionId: string,
-    optionId: string,
-    allowMultiple = false,
+    pollId: string, questionId: string, optionId: string, allowMultiple = false,
   ): Promise<boolean> {
     this.clearError();
     if (!this.canVote(pollId, questionId, optionId, allowMultiple)) return false;
@@ -150,6 +172,16 @@ export class PollService implements OnDestroy {
     if (error) return this.handleVoteError(error, pollId, questionId, optionId, allowMultiple);
     await this.completeVote(pollId, questionId, optionId, allowMultiple);
     return true;
+  }
+
+  /** Persists newly expired deadlines and refreshes state when needed. */
+  private async syncExpiredPolls(): Promise<void> {
+    try {
+      const updated = await this.repository.completeExpiredPolls();
+      if (updated > 0) await this.loadPolls(false);
+    } catch (error) {
+      this.setError(error, 'Failed to synchronize survey status.');
+    }
   }
 
   /** Clears the latest public service error. */

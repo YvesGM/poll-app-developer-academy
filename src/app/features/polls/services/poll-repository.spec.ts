@@ -11,6 +11,9 @@ const pollRows = [
     question: 'Which option?',
     description: null,
     deadline: null,
+    status: 'active',
+    completion_reason: null,
+    completed_at: null,
     created_at: '2026-09-04T10:00:00Z',
   },
 ];
@@ -20,6 +23,7 @@ const voteRows = [{ option_id: 'option-1' }];
 
 const supabaseStub = {
   client: {
+    rpc: async () => ({ data: 0, error: null }),
     from: (table: string) => ({
       select: () => selectRows(table),
     }),

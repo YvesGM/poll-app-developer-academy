@@ -1,4 +1,11 @@
-import { Poll, PollCategory, PollOption, PollQuestion } from '../models/poll.model';
+import {
+  Poll,
+  PollCategory,
+  PollCompletionReason,
+  PollOption,
+  PollQuestion,
+  PollStatus,
+} from '../models/poll.model';
 
 export interface PollRow {
   id: string;
@@ -7,6 +14,9 @@ export interface PollRow {
   question: string;
   description: string | null;
   deadline: string | null;
+  status: PollStatus;
+  completion_reason: PollCompletionReason;
+  completed_at: string | null;
   created_at: string;
 }
 
@@ -57,6 +67,9 @@ function mapPollFields(row: PollRow): Omit<Poll, 'questions'> {
     title: row.title,
     description: row.description,
     deadline: row.deadline ? new Date(row.deadline) : null,
+    status: row.status,
+    completionReason: row.completion_reason,
+    completedAt: row.completed_at ? new Date(row.completed_at) : null,
     createdAt: new Date(row.created_at),
   };
 }

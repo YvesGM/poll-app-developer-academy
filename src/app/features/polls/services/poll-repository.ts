@@ -37,7 +37,7 @@ export class PollRepository {
     const result = await this.supabase.client
       .from('polls')
       .insert(this.buildPollInsert(input))
-      .select('id, category, title, question, description, deadline, created_at')
+      .select('id, category, title, question, description, deadline, status, completion_reason, completed_at, created_at')
       .single();
     if (result.error || !result.data) throw result.error ?? new Error('Survey insert failed.');
     return result.data as PollRow;
@@ -48,15 +48,9 @@ export class PollRepository {
     pollId: string,
     questions: CreatePollQuestionInput[],
   ): Promise<PollQuestionRow[]> {
-    const payload = questions.map((item, index) => ({
-      poll_id: pollId,
-      text: item.question,
-      position: index,
-      allow_multiple: item.allowMultiple,
-    }));
     const result = await this.supabase.client
       .from('poll_questions')
-      .insert(payload)
+      .insert(this.buildQuestionInsert(pollId, questions))
       .select('id, poll_id, text, position, allow_multiple');
     if (result.error || !result.data) throw result.error ?? new Error('Question insert failed.');
     return result.data as PollQuestionRow[];
@@ -90,6 +84,20 @@ export class PollRepository {
     return error;
   }
 
+  /** Marks a survey completed manually. @param pollId Survey id. @returns Whether completion succeeded. */
+  async completePoll(pollId: string): Promise<boolean> {
+    const result = await this.supabase.client.rpc('complete_poll', { target_poll_id: pollId });
+    if (result.error) throw result.error;
+    return result.data === true;
+  }
+
+  /** Persists deadline-expired surveys as completed. @returns Number of updated surveys. */
+  async completeExpiredPolls(): Promise<number> {
+    const result = await this.supabase.client.rpc('complete_expired_polls');
+    if (result.error) throw result.error;
+    return typeof result.data === 'number' ? result.data : 0;
+  }
+
   /** Deletes a partially created survey. @param pollId Survey id. */
   async deletePartialPoll(pollId: string): Promise<void> {
     await this.supabase.client.from('polls').delete().eq('id', pollId);
@@ -99,7 +107,7 @@ export class PollRepository {
   private async fetchPollRows(): Promise<PollRow[]> {
     const result = await this.supabase.client
       .from('polls')
-      .select('id, category, title, question, description, deadline, created_at')
+      .select('id, category, title, question, description, deadline, status, completion_reason, completed_at, created_at')
       .order('deadline', { ascending: true, nullsFirst: false });
     if (result.error) throw result.error;
     return (result.data ?? []) as PollRow[];
@@ -130,7 +138,7 @@ export class PollRepository {
   }
 
   /** Builds the survey insert payload. @param input Survey input. @returns Poll insert payload. */
-  private buildPollInsert(input: CreatePollInput): Omit<PollRow, 'id' | 'created_at'> {
+  private buildPollInsert(input: CreatePollInput): Pick<PollRow, 'category' | 'title' | 'question' | 'description' | 'deadline'> {
     return {
       category: input.category,
       title: input.title,
@@ -138,6 +146,16 @@ export class PollRepository {
       description: input.description,
       deadline: input.deadline?.toISOString() ?? null,
     };
+  }
+
+  /** Builds question inserts. @param pollId Survey id. @param questions Inputs. @returns Question payload. */
+  private buildQuestionInsert(pollId: string, questions: CreatePollQuestionInput[]) {
+    return questions.map((item, position) => ({
+      poll_id: pollId,
+      text: item.question,
+      position,
+      allow_multiple: item.allowMultiple,
+    }));
   }
 
   /** Builds flattened answer inserts. @param pollId Survey id. @param questions Inputs. @param rows Persisted questions. @returns Option payload. */

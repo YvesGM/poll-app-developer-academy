@@ -57,6 +57,7 @@
           class="category-menu"
           (focusout)="handleCategoryFocusOut($event)"
           (keydown.escape)="closeCategoryMenu()"
+          (keydown)="handleCategoryMenuKeydown($event)"
         >
           <button
             class="category-menu__trigger"
@@ -104,6 +105,9 @@
 
 @if (createModalOpen()) {
   <div class="modal-backdrop" (click)="closeCreateModal()">
+    <div class="modal-mobile-header">
+      <app-logo tone="dark" />
+    </div>
     <section
       class="modal-panel"
       role="dialog"

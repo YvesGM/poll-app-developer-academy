@@ -53,13 +53,13 @@ h3 {
   padding: 2rem;
   border-radius: 0 5rem 0 0;
   color: var(--color-text);
-  background: var(--color-card);
+  background: var(--color-surface);
 }
 .survey-card-link--highlight .survey-card__category {
   color: var(--color-text);
 }
 .survey-card-link--highlight:hover .survey-card {
-  background: var(--color-surface);
+  background: var(--color-card);
 }
 .survey-card-link--highlight h3 {
   max-width: 15rem;

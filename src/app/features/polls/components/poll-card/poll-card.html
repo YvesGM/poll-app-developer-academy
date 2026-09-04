@@ -4,7 +4,7 @@
   [routerLink]="['/polls', poll().id]"
 >
   <article class="survey-card">
-    <p class="survey-card__category">{{ poll().category }}</p>
+    <p class="survey-card__category">{{ categoryLabel() }}</p>
     <h3>{{ poll().title }}</h3>
     <div class="survey-card__footer">
       <p class="survey-card__deadline">{{ deadlineLabel() }}</p>

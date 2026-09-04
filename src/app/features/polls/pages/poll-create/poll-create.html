@@ -1,11 +1,14 @@
-<article class="create">
+<article class="create" (keydown)="handleEditorKeydown($event)">
   <header class="create__header">
     <div>
       <span class="draft-pill">Draft</span>
       <h1>Create new survey</h1>
     </div>
-    <button class="button button--secondary" type="button" [disabled]="saving()" (click)="cancel()">
-      Cancel
+    <button class="button button--secondary cancel-button" type="button" [disabled]="saving()" (click)="cancel()">
+      <span class="cancel-text">
+        Cancel
+      </span>
+      
     </button>
   </header>
 
@@ -17,7 +20,7 @@
             <label for="title">Survey name</label>
             <div class="input-with-action">
               <input id="title" type="text" formControlName="title" />
-              <button class="field-delete" type="button" aria-label="Clear survey name" (click)="clearTitle()"></button>
+              <button class="field-delete" type="button" [disabled]="!form.controls.title.value" aria-label="Clear survey name" (click)="clearTitle()"></button>
             </div>
             @if (form.controls.title.touched && form.controls.title.invalid) {
               <p class="field-error">Enter a name with no more than 120 characters.</p>
@@ -25,29 +28,70 @@
           </div>
 
           <div class="compact-fields">
+            <div class="field field--category" [class.field--category--open]="categoryMenuOpen()" (keydown)="handleCategoryKeydown($event)">
+              <button
+                class="category-select__trigger"
+                type="button"
+                [class.is-invalid]="form.controls.category.touched && form.controls.category.invalid"
+                [attr.aria-expanded]="categoryMenuOpen()"
+                aria-haspopup="listbox"
+                aria-controls="create-category-options"
+                (click)="toggleCategoryMenu()"
+              >
+                @if (form.controls.category.value; as category) {
+                  {{ categoryLabel(category) }}
+                } @else {
+                  Choose category
+                }
+              </button>
+              @if (categoryMenuOpen()) {
+                <ul id="create-category-options" class="category-select__options" role="listbox" aria-label="Survey category">
+                  @for (category of categories; track category) {
+                    <li>
+                      <button
+                        type="button"
+                        role="option"
+                        [attr.aria-selected]="form.controls.category.value === category"
+                        (click)="chooseCategory(category)"
+                      >
+                        {{ categoryLabel(category) }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (form.controls.category.touched && form.controls.category.invalid) {
+                <p class="field-error">Choose a category.</p>
+              }
+            </div>
+
             <div class="field field--deadline">
               <label for="deadline">Set end date (optional)</label>
               <div class="input-with-action">
-                <input id="deadline" type="datetime-local" formControlName="deadline" />
-                <button class="field-delete" type="button" aria-label="Clear end date" (click)="clearDeadline()"></button>
+                <input
+                  id="deadline"
+                  type="datetime-local"
+                  formControlName="deadline"
+                  [class.is-empty]="!form.controls.deadline.value"
+                />
+                <button class="field-delete" type="button" [disabled]="!form.controls.deadline.value" aria-label="Clear end date" (click)="clearDeadline()"></button>
               </div>
-            </div>
-
-            <div class="field field--category">
-              <label class="visually-hidden" for="category">Category</label>
-              <select id="category" formControlName="category" aria-label="Choose category">
-                <option [ngValue]="null" disabled>Choose category</option>
-                @for (category of categories; track category) {
-                  <option [ngValue]="category">{{ category }}</option>
-                }
-              </select>
             </div>
           </div>
         </div>
 
         <div class="field field--description">
           <label for="description">Describing text <span>(optional)</span></label>
-          <textarea id="description" formControlName="description"></textarea>
+          <div class="input-with-action">
+            <textarea id="description" formControlName="description"></textarea>
+            <button
+              class="field-delete"
+              type="button"
+              [disabled]="!form.controls.description.value"
+              aria-label="Clear description"
+              (click)="clearDescription()"
+            ></button>
+          </div>
           @if (form.controls.description.touched && form.controls.description.invalid) {
             <p class="field-error">Use no more than 1000 characters.</p>
           }
@@ -58,13 +102,23 @@
         <div class="questions" formArrayName="questions">
           @for (questionGroup of questions.controls; track questionGroup; let questionIndex = $index) {
             <section class="question-block" [formGroupName]="questionIndex">
-              <header><span>{{ questionIndex + 1 }}. Question</span></header>
+              <header><span [id]="'question-label-' + questionIndex">{{ questionIndex + 1 }}. Question</span></header>
               <div class="field">
-                <input
-                  [id]="'question-' + questionIndex"
-                  type="text"
-                  formControlName="question"
-                />
+                <div class="input-with-action">
+                  <input
+                    [id]="'question-' + questionIndex"
+                    type="text"
+                    formControlName="question"
+                    [attr.aria-labelledby]="'question-label-' + questionIndex"
+                  />
+                  <button
+                    class="field-delete"
+                    type="button"
+                    [disabled]="questions.length <= 1 && !questionHasContent(questionIndex)"
+                    [attr.aria-label]="'Delete question ' + (questionIndex + 1)"
+                    (click)="removeQuestion(questionIndex)"
+                  ></button>
+                </div>
                 @if (questionGroup.controls.question.touched && questionGroup.controls.question.invalid) {
                   <p class="field-error">Enter a question between 3 and 250 characters.</p>
                 }
@@ -81,7 +135,7 @@
               <fieldset formArrayName="options" aria-label="Answers">
                 @for (option of questionGroup.controls.options.controls; track option; let optionIndex = $index) {
                   <div class="answer-field">
-                    <span class="answer-label">{{ optionIndex === 0 ? 'A.' : optionIndex === 1 ? 'B.' : optionIndex + 1 + '.' }}</span>
+                    <span class="answer-label">{{ answerLabel(optionIndex) }}</span>
                     <input
                       [id]="'question-' + questionIndex + '-option-' + optionIndex"
                       type="text"
@@ -91,7 +145,7 @@
                     <button
                       class="delete-button"
                       type="button"
-                      [disabled]="questionGroup.controls.options.length <= 2"
+                      [disabled]="questionGroup.controls.options.length <= 2 && !option.value"
                       [attr.aria-label]="'Delete answer ' + (optionIndex + 1)"
                       (click)="removeOption(questionIndex, optionIndex)"
                     ></button>
@@ -108,23 +162,33 @@
                 }
               </fieldset>
 
-              <button class="add-answer" type="button" (click)="addOption(questionIndex)">
-                Add answer
-                <img src="assets/icons/add.svg" width="24" height="24" alt="" />
-              </button>
+              <div class="answer-actions">
+                <button
+                  class="add-answer"
+                  type="button"
+                  [disabled]="questionGroup.controls.options.length >= 6"
+                  (click)="addOption(questionIndex)"
+                >
+                  Add answer
+                  <img src="assets/icons/add.svg" width="24" height="24" alt="" />
+                </button>
+                <span class="answer-limit">You can add up to 6 answer fields.</span>
+              </div>
             </section>
           }
+          <button class="add-question" type="button" (click)="addQuestion()">
+            Add next question
+            <img src="assets/icons/add.svg" width="20" height="20" alt="" />
+          </button>
         </div>
-
-        <button class="add-question" type="button" (click)="addQuestion()">
-          Add next question
-          <img src="assets/icons/add.svg" width="20" height="20" alt="" />
-        </button>
       </div>
     </div>
 
     @if (error()) {
       <p class="form-error" role="alert">{{ error() }}</p>
+    }
+    @if (validationNotice()) {
+      <p class="validation-notice" role="alert">Please complete all required fields.</p>
     }
     <footer class="create__footer">
       <button class="button button--primary" type="submit" [disabled]="saving()">

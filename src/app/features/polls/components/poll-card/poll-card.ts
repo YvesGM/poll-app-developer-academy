@@ -2,7 +2,7 @@ import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CurrentTimeService } from '../../../../core/time/current-time';
-import { Poll } from '../../models/poll.model';
+import { POLL_CATEGORY_LABELS, Poll } from '../../models/poll.model';
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -19,6 +19,11 @@ export class PollCard {
 
   readonly poll = input.required<Poll>();
   readonly highlight = input(false);
+
+  /** Returns the shared display label for the survey category. @returns Category label. */
+  protected categoryLabel(): string {
+    return POLL_CATEGORY_LABELS[this.poll().category];
+  }
 
   /**
    * Formats the remaining survey lifetime for the deadline badge.
