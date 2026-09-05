@@ -72,10 +72,17 @@
                   id="deadline"
                   type="datetime-local"
                   formControlName="deadline"
+                  [min]="minimumDeadline"
                   [class.is-empty]="!form.controls.deadline.value"
                 />
                 <button class="field-delete" type="button" [disabled]="!form.controls.deadline.value" aria-label="Clear end date" (click)="clearDeadline()"></button>
               </div>
+              @if (
+                form.controls.deadline.touched &&
+                form.controls.deadline.hasError('minimumFutureDate')
+              ) {
+                <p class="field-error">Choose a date at least 5 minutes from now.</p>
+              }
             </div>
           </div>
         </div>

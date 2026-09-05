@@ -1,4 +1,57 @@
 @mixin responsive {
+  @media (max-height: 700px) and (min-width: 901px) {
+    .create {
+      padding: 1.5rem 2rem;
+    }
+
+    .create__header {
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 3rem;
+    }
+
+    .create__content {
+      padding: 1.5rem 2rem;
+    }
+
+    .question-area {
+      margin-top: 1rem;
+    }
+  }
+
+
+  @media (max-height: 580px) and (min-width: 901px) and (hover: hover) and (pointer: fine) {
+    .create {
+      min-height: 0;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .create__content {
+      min-height: 0;
+      max-height: none;
+      flex: 0 0 auto;
+      overflow: visible;
+    }
+
+    .question-area {
+      min-height: 0;
+      flex: 0 0 auto;
+      overflow: visible;
+    }
+
+    .questions {
+      height: auto;
+      max-height: none;
+      overflow-y: visible;
+      overscroll-behavior: auto;
+      scrollbar-gutter: auto;
+      touch-action: auto;
+    }
+  }
+
   @media (max-width: 900px) {
     :host {
       height: 100%;
@@ -48,6 +101,9 @@
     .questions {
       max-height: none;
       overflow: visible;
+      overscroll-behavior: auto;
+      scrollbar-gutter: auto;
+      touch-action: auto;
     }
 
     .question-area {

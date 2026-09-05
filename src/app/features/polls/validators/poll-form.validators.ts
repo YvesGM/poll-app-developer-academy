@@ -1,5 +1,7 @@
 import { AbstractControl, FormArray, ValidationErrors } from '@angular/forms';
 
+export const MINIMUM_DEADLINE_LEAD_MS = 5 * 60 * 1000;
+
 /**
  * Validates that a text control contains non-whitespace content.
  * @param control Form control to validate.
@@ -7,6 +9,20 @@ import { AbstractControl, FormArray, ValidationErrors } from '@angular/forms';
  */
 export function trimmedRequired(control: AbstractControl): ValidationErrors | null {
   return normalizeValue(control.value).length > 0 ? null : { trimmedRequired: true };
+}
+
+/**
+ * Validates that an optional deadline is at least five minutes ahead.
+ * @param control Date-time form control.
+ * @returns Validation error for too-soon or invalid dates, otherwise `null`.
+ */
+export function minimumFutureDate(control: AbstractControl): ValidationErrors | null {
+  const value = normalizeValue(control.value);
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  const currentMinute = Math.floor(Date.now() / 60_000) * 60_000;
+  const minimum = currentMinute + MINIMUM_DEADLINE_LEAD_MS;
+  return Number.isFinite(timestamp) && timestamp >= minimum ? null : { minimumFutureDate: true };
 }
 
 /**

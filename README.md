@@ -246,20 +246,20 @@ The repository contains unit tests for poll services, persistence behavior, page
 
 A survey is considered:
 
-- **Active** while its persisted status is `active` and its deadline has not elapsed.
-- **Completed** after manual completion or once its deadline has elapsed.
-- **Past** in the UI when the persisted status is `completed` or the deadline has elapsed.
+- **Active** while its deadline has not elapsed.
+- **Past** once its deadline has elapsed.
 - **Ending soon** when it is active and its deadline is within the next three days.
+- **Completed for this session** after the participant submits the current answers with `Complete survey`.
 
-Manual completion and deadline completion are persisted in Supabase. Completed surveys store a completion timestamp and whether completion happened manually or because of the deadline.
+Participant completion is stored only for the current browser session. It does not move the survey to the global Past list. Deadline completion remains the only global completion state.
 
 ## Voting Behavior
 
-For single-answer questions, one browser voter identity can submit one answer for the question.
+Selections stay editable in the detail view until `Complete survey` is pressed.
 
-For multiple-answer questions, one browser voter identity can submit more than one distinct answer option.
+For single-answer questions, selecting another option replaces the current local choice. For multiple-answer questions, options can be toggled independently.
 
-The database remains the final authority for vote consistency.
+The final selection is persisted once, then the survey is locked for the current browser session. The database remains the final authority for vote consistency.
 
 ## Realtime Results
 

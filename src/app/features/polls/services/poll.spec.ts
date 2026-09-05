@@ -17,9 +17,9 @@ const supabaseStub = {
   },
 };
 const voterIdentityStub = {
-  hasVoted: () => false,
+  hasCompletedPoll: () => false,
   hasVotedOption: () => false,
-  markVoted(): void {},
+  markCompletedPoll(): void {},
   markVotedOption(): void {},
   voterToken: 'voter-token',
 };
@@ -27,6 +27,7 @@ const currentTimeStub = {
   currentTime: signal(new Date('2026-09-04T10:00:00Z')).asReadonly(),
 };
 const repositoryStub = {
+  insertVotes: async () => null,
   completeExpiredPolls: async () => 0,
   fetchSnapshot: async () => ({ polls: [], questions: [], options: [], votes: [] }),
 };

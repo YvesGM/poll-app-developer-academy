@@ -36,7 +36,7 @@
                   [label]="optionIndex"
                   [option]="option"
                   [checked]="isOptionSelected(question.id, option.id)"
-                  [disabled]="isOptionDisabled(question.id, option.id, question.allowMultiple)"
+                  [disabled]="isOptionDisabled()"
                   (voted)="vote(question.id, $event, question.allowMultiple)"
                 />
               }
@@ -45,11 +45,11 @@
         }
       </div>
 
-      @if (!isPast()) {
+      @if (!isPast() && !sessionCompleted()) {
         <button
           class="button button--primary complete-survey"
           type="button"
-          [disabled]="busy()"
+          [disabled]="busy() || !canComplete()"
           (click)="completeSurvey()"
         >
           <span class="complete-label complete-label--desktop">Complete survey</span>

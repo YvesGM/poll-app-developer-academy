@@ -7,13 +7,13 @@ import { PollService } from '../../services/poll';
 import { PollDetail } from './poll-detail';
 
 const pollServiceStub = {
-  completePoll: async () => true,
+  hasCompletedPoll: () => false,
+  hasVotedOption: () => false,
   error: signal<string | null>(null).asReadonly(),
   getPollById: () => undefined,
-  hasVoted: () => false,
   isPast: () => false,
   loading: signal(false).asReadonly(),
-  vote: async () => true,
+  submitVotes: async () => true,
 };
 
 const currentTimeStub = {

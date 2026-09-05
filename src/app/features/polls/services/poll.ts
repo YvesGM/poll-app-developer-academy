@@ -5,7 +5,7 @@ import { SupabaseService } from '../../../core/supabase/supabase';
 import { CurrentTimeService } from '../../../core/time/current-time';
 import { VoterIdentityService } from '../../../core/voter/voter-identity';
 import { mapPollRow, mapPollRows, PollRow } from '../mappers/poll.mapper';
-import { CreatePollInput, Poll } from '../models/poll.model';
+import { CreatePollInput, Poll, VoteSelection } from '../models/poll.model';
 import { subscribeToPollChanges } from './poll-realtime';
 import { PollDataSnapshot, PollRepository } from './poll-repository';
 
@@ -88,7 +88,6 @@ export class PollService implements OnDestroy {
    * @returns Whether the survey is past.
    */
   isPast(poll: Poll, referenceDate = new Date()): boolean {
-    if (poll.status === 'completed') return true;
     return poll.deadline !== null && poll.deadline.getTime() <= referenceDate.getTime();
   }
 
@@ -102,23 +101,12 @@ export class PollService implements OnDestroy {
     return !this.isPast(poll, referenceDate);
   }
 
-  /**
-   * Checks whether the current browser identity has already voted.
-   * @param pollId Survey identifier to inspect.
-   * @param questionId Question identifier to inspect.
-   * @returns Whether the browser already voted.
-   */
-  hasVoted(pollId: string, questionId: string): boolean {
-    return this.voterIdentity.hasVoted(pollId, questionId);
+  /** Checks whether this browser session completed one survey. @param pollId Survey id. @returns Completion state. */
+  hasCompletedPoll(pollId: string): boolean {
+    return this.voterIdentity.hasCompletedPoll(pollId);
   }
 
-  /**
-   * Checks whether the current browser identity selected one option.
-   * @param pollId Survey identifier to inspect.
-   * @param questionId Question identifier to inspect.
-   * @param optionId Option identifier to inspect.
-   * @returns Whether this option was already selected.
-   */
+  /** Checks whether this browser session submitted one option. @param pollId Survey id. @param questionId Question id. @param optionId Option id. @returns Vote state. */
   hasVotedOption(pollId: string, questionId: string, optionId: string): boolean {
     return this.voterIdentity.hasVotedOption(pollId, questionId, optionId);
   }
@@ -140,37 +128,16 @@ export class PollService implements OnDestroy {
     }
   }
 
-  /** Completes one active survey manually. @param pollId Survey id. @returns Whether completion succeeded. */
-  async completePoll(pollId: string): Promise<boolean> {
+  /** Persists final answers and completes the survey only for this session. @param pollId Survey id. @param selections Final answers. @returns Save state. */
+  async submitVotes(pollId: string, selections: VoteSelection[]): Promise<boolean> {
     this.clearError();
-    try {
-      const completed = await this.repository.completePoll(pollId);
-      if (completed) await this.loadPolls(false);
-      return completed;
-    } catch (error) {
-      this.setError(error, 'Failed to complete survey.');
-      return false;
-    }
-  }
-
-  /**
-   * Persists one vote for a survey option.
-   *
-   * @param pollId Survey identifier.
-   * @param questionId Question identifier.
-   * @param optionId Selected option identifier.
-   * @returns Whether the vote was stored successfully.
-   */
-  async vote(
-    pollId: string, questionId: string, optionId: string, allowMultiple = false,
-  ): Promise<boolean> {
-    this.clearError();
-    if (!this.canVote(pollId, questionId, optionId, allowMultiple)) return false;
-    const error = await this.repository.insertVote(
-      pollId, questionId, optionId, this.voterIdentity.voterToken,
+    if (!this.canSubmitVotes(pollId, selections)) return false;
+    const error = await this.repository.insertVotes(
+      pollId, selections, this.voterIdentity.voterToken,
     );
-    if (error) return this.handleVoteError(error, pollId, questionId, optionId, allowMultiple);
-    await this.completeVote(pollId, questionId, optionId, allowMultiple);
+    if (error) return this.handleVoteSubmitError(error);
+    this.storeSubmittedVotes(pollId, selections);
+    await this.loadPolls(false);
     return true;
   }
 
@@ -252,90 +219,25 @@ export class PollService implements OnDestroy {
     await this.repository.deletePartialPoll(pollId);
   }
 
-  /**
-   * Checks all local conditions that allow a vote to be submitted.
-   * @param pollId Survey identifier to inspect.
-   * @param questionId Question identifier to inspect.
-   * @returns Whether voting is allowed.
-   */
-  private canVote(
-    pollId: string,
-    questionId: string,
-    optionId: string,
-    allowMultiple: boolean,
-  ): boolean {
+  /** Checks whether final answers can be submitted. @param pollId Survey id. @param selections Final answers. @returns Submission state. */
+  private canSubmitVotes(pollId: string, selections: VoteSelection[]): boolean {
     const poll = this.getPollById(pollId);
-    if (!poll || this.isPast(poll)) return false;
-    return allowMultiple
-      ? !this.hasVotedOption(pollId, questionId, optionId)
-      : !this.hasVoted(pollId, questionId);
+    if (!poll || this.isPast(poll) || this.hasCompletedPoll(pollId)) return false;
+    return selections.length > 0;
   }
 
-  /**
-   * Handles duplicate-vote and general persistence errors.
-   * @param error Vote persistence error.
-   * @param pollId Survey identifier associated with the vote.
-   * @param questionId Question identifier associated with the vote.
-   * @returns Always `false` for the failed vote.
-   */
-  private handleVoteError(
-    error: unknown,
-    pollId: string,
-    questionId: string,
-    optionId: string,
-    allowMultiple: boolean,
-  ): boolean {
-    if (this.isDuplicateVoteError(error)) {
-      this.markVoteLocally(pollId, questionId, optionId, allowMultiple);
-      return false;
+  /** Stores submitted answer markers and session completion. @param pollId Survey id. @param selections Submitted answers. */
+  private storeSubmittedVotes(pollId: string, selections: VoteSelection[]): void {
+    for (const selection of selections) {
+      this.voterIdentity.markVotedOption(pollId, selection.questionId, selection.optionId);
     }
-    this.setError(error, 'Failed to save vote.');
+    this.voterIdentity.markCompletedPoll(pollId);
+  }
+
+  /** Exposes a readable vote submission error. @param error Persistence error. @returns Always false. */
+  private handleVoteSubmitError(error: unknown): boolean {
+    this.setError(error, 'Failed to complete survey.');
     return false;
-  }
-
-  /**
-   * Marks a successful vote locally and refreshes the survey state.
-   * @param pollId Survey identifier associated with the vote.
-   * @param questionId Question identifier associated with the vote.
-   */
-  private async completeVote(
-    pollId: string,
-    questionId: string,
-    optionId: string,
-    allowMultiple: boolean,
-  ): Promise<void> {
-    this.markVoteLocally(pollId, questionId, optionId, allowMultiple);
-    await this.loadPolls(false);
-  }
-
-  /** Stores the correct local marker for single- or multiple-answer questions. */
-  private markVoteLocally(
-    pollId: string,
-    questionId: string,
-    optionId: string,
-    allowMultiple: boolean,
-  ): void {
-    if (allowMultiple) this.voterIdentity.markVotedOption(pollId, questionId, optionId);
-    else this.voterIdentity.markVoted(pollId, questionId);
-  }
-
-  /**
-   * Checks whether a Supabase error represents a unique constraint violation.
-   * @param error Unknown persistence error.
-   * @returns Whether the unique constraint code is present.
-   */
-  private isDuplicateVoteError(error: unknown): boolean {
-    return this.hasErrorCode(error, '23505');
-  }
-
-  /**
-   * Checks an unknown error object for a specific database error code.
-   * @param error Unknown persistence error.
-   * @param code Database error code to match.
-   * @returns Whether the supplied code is present.
-   */
-  private hasErrorCode(error: unknown, code: string): boolean {
-    return typeof error === 'object' && error !== null && 'code' in error && error.code === code;
   }
 
   /**

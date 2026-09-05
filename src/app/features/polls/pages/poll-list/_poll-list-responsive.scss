@@ -11,6 +11,55 @@
       gap: 2rem;
     }
   }
+  @media (max-width: 900px) {
+    .modal-backdrop {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      overflow: hidden;
+      background: var(--color-surface);
+    }
+
+    .modal-mobile-header {
+      display: flex;
+      min-height: 8.5rem;
+      flex: 0 0 auto;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      background: var(--color-surface);
+    }
+
+    .modal-panel {
+      width: 100%;
+      min-height: 0;
+      max-height: none;
+      flex: 1 1 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 0 5rem 0 0;
+      background: var(--color-purple);
+    }
+  }
+
+
+  @media (max-width: 900px) and (hover: hover) and (pointer: fine) {
+    .modal-mobile-header {
+      min-height: 4.5rem;
+      padding: 0.75rem 2rem;
+    }
+  }
+
+  @media (max-height: 580px) and (min-width: 901px) and (hover: hover) and (pointer: fine) {
+    .modal-panel {
+      max-height: calc(100vh - 1rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+  }
+
   @media (max-width: 768px) {
     .home {
       width: calc(100% - 2rem); max-width: none;
@@ -109,36 +158,6 @@
       right: auto;
       left: 0;
       width: min(100%, 17.5rem);
-    }
-
-    .modal-backdrop {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      padding: 0;
-      overflow: hidden;
-      background: var(--color-surface);
-    }
-
-    .modal-mobile-header {
-      display: flex;
-      min-height: 8.5rem;
-      flex: 0 0 auto;
-      align-items: center;
-      padding: 1.5rem 2rem;
-      background: var(--color-surface);
-    }
-
-    .modal-panel {
-      width: 100%;
-      min-height: 0;
-      max-height: none;
-      flex: 1 1 0;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-      border-radius: 0 5rem 0 0;
-      background: var(--color-purple);
     }
 
     .publish-confirmation {

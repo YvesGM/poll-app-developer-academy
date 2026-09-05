@@ -60,3 +60,10 @@ export interface CreatePollQuestionInput {
   allowMultiple: boolean;
   options: string[];
 }
+
+
+export interface VoteSelection {
+  questionId: string;
+  optionId: string;
+  allowMultiple: boolean;
+}

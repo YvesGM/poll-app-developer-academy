@@ -10,7 +10,12 @@ import {
   PollCategory,
 } from '../../models/poll.model';
 import { PollService } from '../../services/poll';
-import { trimmedRequired, uniqueOptions } from '../../validators/poll-form.validators';
+import {
+  MINIMUM_DEADLINE_LEAD_MS,
+  minimumFutureDate,
+  trimmedRequired,
+  uniqueOptions,
+} from '../../validators/poll-form.validators';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -30,6 +35,11 @@ export class PollCreate implements AfterViewInit {
   protected readonly validationNotice = signal(false);
   protected readonly error = this.pollService.error;
   protected readonly categories = POLL_CATEGORIES;
+  protected readonly minimumDeadline = this.toLocalDateTimeValue(
+    new Date(
+      Math.floor(Date.now() / 60_000) * 60_000 + MINIMUM_DEADLINE_LEAD_MS,
+    ),
+  );
   protected readonly categoryMenuOpen = signal(false);
   private validationNoticeTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -37,7 +47,7 @@ export class PollCreate implements AfterViewInit {
     category: this.formBuilder.control<PollCategory | null>(null, [Validators.required]),
     title: ['', [trimmedRequired, Validators.minLength(1), Validators.maxLength(120)]],
     description: ['', [Validators.maxLength(1000)]],
-    deadline: [''],
+    deadline: ['', [minimumFutureDate]],
     questions: this.formBuilder.nonNullable.array([this.createQuestionGroup()]),
   });
 
@@ -265,6 +275,12 @@ export class PollCreate implements AfterViewInit {
     if (key === 'End') return length - 1;
     if (key === 'ArrowUp') return current <= 0 ? length - 1 : current - 1;
     return current < 0 || current >= length - 1 ? 0 : current + 1;
+  }
+
+  /** Formats a date for a local datetime input. @param date Date to format. @returns Local datetime value. */
+  private toLocalDateTimeValue(date: Date): string {
+    const offsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
   }
 
   /** Creates one validated question group. @returns New question form group. */

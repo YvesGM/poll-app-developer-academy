@@ -7,7 +7,7 @@ import {
   PollRow,
   VoteRow,
 } from '../mappers/poll.mapper';
-import { CreatePollInput, CreatePollQuestionInput } from '../models/poll.model';
+import { CreatePollInput, CreatePollQuestionInput, VoteSelection } from '../models/poll.model';
 
 export interface PollDataSnapshot {
   polls: PollRow[];
@@ -68,27 +68,20 @@ export class PollRepository {
     return result.data as PollOptionRow[];
   }
 
-  /** Inserts one browser vote. @param pollId Survey id. @param questionId Question id. @param optionId Option id. @param voterToken Browser token. @returns Persistence error. */
-  async insertVote(
+  /** Inserts the final answer selection for one browser session. @param pollId Survey id. @param selections Final answers. @param voterToken Session token. @returns Persistence error. */
+  async insertVotes(
     pollId: string,
-    questionId: string,
-    optionId: string,
+    selections: VoteSelection[],
     voterToken: string,
   ): Promise<unknown> {
-    const { error } = await this.supabase.client.from('votes').insert({
+    const payload = selections.map((selection) => ({
       poll_id: pollId,
-      question_id: questionId,
-      option_id: optionId,
+      question_id: selection.questionId,
+      option_id: selection.optionId,
       voter_token: voterToken,
-    });
+    }));
+    const { error } = await this.supabase.client.from('votes').insert(payload);
     return error;
-  }
-
-  /** Marks a survey completed manually. @param pollId Survey id. @returns Whether completion succeeded. */
-  async completePoll(pollId: string): Promise<boolean> {
-    const result = await this.supabase.client.rpc('complete_poll', { target_poll_id: pollId });
-    if (result.error) throw result.error;
-    return result.data === true;
   }
 
   /** Persists deadline-expired surveys as completed. @returns Number of updated surveys. */

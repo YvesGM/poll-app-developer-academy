@@ -187,19 +187,25 @@ textarea {
   min-height: 0;
   flex: 1;
   grid-template-columns: 1fr;
-  align-items: start;
+  align-items: stretch;
   margin-top: 2.5rem;
+  overflow: hidden;
 }
 
 .questions {
   display: grid;
-  height: 324px;
+  height: 100%;
+  min-height: 0;
+  max-height: 324px;
   grid-template-columns: repeat(2, minmax(0, 26.8125rem));
   align-items: start;
   gap: 2rem 3.5rem;
   padding-right: 0.75rem;
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
 }
 
 .question-block {

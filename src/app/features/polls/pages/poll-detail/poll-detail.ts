@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrentTimeService } from '../../../../core/time/current-time';
 import { AppLogo } from '../../../../shared/components/app-logo/app-logo';
 import { PollOption } from '../../components/poll-option/poll-option';
-import { POLL_CATEGORY_LABELS } from '../../models/poll.model';
+import { POLL_CATEGORY_LABELS, VoteSelection } from '../../models/poll.model';
 import { PollResults } from '../../components/poll-results/poll-results';
 import { PollCreate } from '../poll-create/poll-create';
 import { PollService } from '../../services/poll';
@@ -31,6 +31,8 @@ export class PollDetail {
   protected readonly selectedOptions = signal<ReadonlySet<string>>(new Set());
   protected readonly poll = computed(() => this.pollService.getPollById(this.pollId));
   protected readonly categoryLabels = POLL_CATEGORY_LABELS;
+  protected readonly sessionCompleted = computed(() => this.pollService.hasCompletedPoll(this.pollId));
+  protected readonly canComplete = computed(() => this.hasAllRequiredSelections());
 
   protected readonly isPast = computed(() => {
     const poll = this.poll();
@@ -38,11 +40,11 @@ export class PollDetail {
     return poll ? this.pollService.isPast(poll, referenceDate) : false;
   });
 
-  /** Completes the current survey and returns to the overview. */
+  /** Submits selected answers and completes the survey for this browser session. */
   protected async completeSurvey(): Promise<void> {
-    if (this.isPast() || this.busy()) return;
+    if (!this.canComplete() || this.busy()) return;
     this.busy.set(true);
-    const completed = await this.pollService.completePoll(this.pollId);
+    const completed = await this.pollService.submitVotes(this.pollId, this.selectedVoteRows());
     this.busy.set(false);
     if (completed) void this.router.navigate(['/']);
   }
@@ -70,41 +72,67 @@ export class PollDetail {
     void this.router.navigate(['/']);
   }
 
-  /** Returns whether this browser already voted on a question. @param questionId Question id. @returns Vote state. */
-  protected hasVoted(questionId: string): boolean {
-    return this.pollService.hasVoted(this.pollId, questionId);
-  }
-
-  /** Returns whether one answer is selected locally or persisted for this browser. */
+  /** Returns whether one answer is selected locally or was submitted in this session. */
   protected isOptionSelected(questionId: string, optionId: string): boolean {
     return this.selectedOptions().has(this.selectionKey(questionId, optionId))
       || this.pollService.hasVotedOption(this.pollId, questionId, optionId);
   }
 
   /** Returns whether an answer control must be disabled. */
-  protected isOptionDisabled(questionId: string, optionId: string, allowMultiple: boolean): boolean {
-    if (this.isPast() || this.busy()) return true;
-    if (allowMultiple) return this.isOptionSelected(questionId, optionId);
-    return this.hasVoted(questionId);
+  protected isOptionDisabled(): boolean {
+    return this.isPast() || this.sessionCompleted() || this.busy();
   }
 
-  /** Submits one answer. @param questionId Question id. @param optionId Option id. @param allowMultiple Multiple-answer mode. */
-  protected async vote(questionId: string, optionId: string, allowMultiple: boolean): Promise<void> {
-    if (this.isOptionDisabled(questionId, optionId, allowMultiple)) return;
-    this.busy.set(true);
-    try {
-      const saved = await this.pollService.vote(this.pollId, questionId, optionId, allowMultiple);
-      if (saved) this.storeSelection(questionId, optionId);
-    } finally {
-      this.busy.set(false);
-    }
+  /** Updates one local answer selection without persisting it yet. @param questionId Question id. @param optionId Option id. @param allowMultiple Multiple-answer mode. */
+  protected vote(questionId: string, optionId: string, allowMultiple: boolean): void {
+    if (this.isOptionDisabled()) return;
+    if (allowMultiple) this.toggleMultipleSelection(questionId, optionId);
+    else this.replaceSingleSelection(questionId, optionId);
   }
 
-  /** Stores one local selection. @param questionId Question id. @param optionId Option id. */
-  private storeSelection(questionId: string, optionId: string): void {
+  /** Toggles one option in a multiple-answer question. @param questionId Question id. @param optionId Option id. */
+  private toggleMultipleSelection(questionId: string, optionId: string): void {
     const next = new Set(this.selectedOptions());
+    const key = this.selectionKey(questionId, optionId);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.selectedOptions.set(next);
+  }
+
+  /** Replaces the local selection for one single-answer question. @param questionId Question id. @param optionId Option id. */
+  private replaceSingleSelection(questionId: string, optionId: string): void {
+    const prefix = `${questionId}:`;
+    const next = new Set([...this.selectedOptions()].filter((key) => !key.startsWith(prefix)));
     next.add(this.selectionKey(questionId, optionId));
     this.selectedOptions.set(next);
+  }
+
+  /** Returns whether every survey question has at least one local answer. */
+  private hasAllRequiredSelections(): boolean {
+    const currentPoll = this.poll();
+    if (!currentPoll || this.isPast() || this.sessionCompleted()) return false;
+    return currentPoll.questions.every((question) => this.hasQuestionSelection(question.id));
+  }
+
+  /** Checks whether one question has a local selection. @param questionId Question id. @returns Selection state. */
+  private hasQuestionSelection(questionId: string): boolean {
+    const prefix = `${questionId}:`;
+    return [...this.selectedOptions()].some((key) => key.startsWith(prefix));
+  }
+
+  /** Builds final vote rows from local selections. @returns Vote rows ready for persistence. */
+  private selectedVoteRows(): VoteSelection[] {
+    const currentPoll = this.poll();
+    if (!currentPoll) return [];
+    return currentPoll.questions.flatMap((question) => this.questionVoteRows(question.id, question.allowMultiple));
+  }
+
+  /** Builds vote rows for one question. @param questionId Question id. @param allowMultiple Multiple-answer mode. @returns Question votes. */
+  private questionVoteRows(questionId: string, allowMultiple: boolean): VoteSelection[] {
+    const prefix = `${questionId}:`;
+    return [...this.selectedOptions()]
+      .filter((key) => key.startsWith(prefix))
+      .map((key) => ({ questionId, optionId: key.slice(prefix.length), allowMultiple }));
   }
 
   /** Builds one local selection key. @param questionId Question id. @param optionId Option id. @returns Selection key. */
