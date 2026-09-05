@@ -10,7 +10,7 @@
   grid-template-columns: 0.8rem minmax(0, 1fr) 2rem;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.7rem;
+  font-size: 1rem;
 }
 .result__row strong {
   color: var(--color-result);
@@ -34,7 +34,7 @@
 .results-empty {
   max-width: 16rem;
   color: rgb(34 18 39 / 70%);
-  font-size: 0.82rem;
+  font-size: 1rem;
   line-height: 1.35;
 }
 .results-empty strong {

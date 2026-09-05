@@ -63,11 +63,12 @@ export class PollList implements OnDestroy {
   });
 
   protected readonly endingSoonPolls = computed(() => {
-    if (this.selectedTab() !== 'active') {
-      return [];
-    }
-    const polls = filterPollsByCategory(this.activePolls(), this.selectedCategory());
-    return filterEndingSoonPolls(polls, this.currentTime().getTime(), ENDING_SOON_WINDOW_MS);
+    if (this.selectedTab() !== 'active') return [];
+    return filterEndingSoonPolls(
+      this.activePolls(),
+      this.currentTime().getTime(),
+      ENDING_SOON_WINDOW_MS,
+    );
   });
 
   /**

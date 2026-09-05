@@ -5,9 +5,9 @@
         <div class="result__row">
           <b>{{ labelFor(index) }}</b>
           <div class="result__track">
-            <span class="result__bar" [style.width.%]="percentage(option.votes)"></span>
+            <span class="result__bar" [style.width.%]="percentage(option)"></span>
           </div>
-          <strong>{{ percentage(option.votes) }}%</strong>
+          <strong>{{ percentage(option) }}%</strong>
         </div>
       </li>
     }

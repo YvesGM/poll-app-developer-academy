@@ -111,7 +111,7 @@
   color: var(--color-purple);
   background: var(--color-orange-soft);
   font-family: var(--font-button);
-  font-size: 0.875rem;
+  font-size: 1rem;
   cursor: pointer;
 }
 .survey-tabs button:hover {
@@ -137,7 +137,7 @@
   border-radius: 0;
   color: var(--color-surface);
   background: transparent;
-  font: 0.875rem var(--font-button);
+  font: 1rem var(--font-button);
   cursor: pointer;
 }
 .category-menu__trigger:hover,

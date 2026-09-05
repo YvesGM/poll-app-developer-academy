@@ -16,7 +16,7 @@
 }
 .answer-limit {
   color: var(--color-surface);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   white-space: nowrap;
 }
 
@@ -48,7 +48,9 @@
 
 .create__footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 1rem;
   margin-top: 2rem;
 }
 .create__footer .button--primary {
@@ -87,16 +89,12 @@
 }
 
 .validation-notice {
-  position: absolute;
-  right: 7.5rem;
-  bottom: 0.75rem;
-  z-index: 4;
+  order: -1;
   margin: 0;
-  padding: 0.4rem 0.65rem;
-  border-radius: 0 0.75rem 0 0;
-  color: #b42318;
-  background: #fff1f0;
-  font-size: 0.75rem;
+  color: #ffd7d3;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 
@@ -152,10 +150,6 @@
 .category-select__trigger:focus-visible {
   outline: none;
   box-shadow: none;
-}
-
-.category-select__trigger.is-invalid {
-  box-shadow: inset 0 0 0 2px #b42318;
 }
 
 .category-select__options {

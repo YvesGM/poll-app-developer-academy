@@ -79,7 +79,7 @@
       @for (question of currentPoll.questions; track question.id; let questionIndex = $index) {
         <section class="result-question">
           <h3>{{ questionIndex + 1 }}. {{ question.text }}</h3>
-          <app-poll-results [options]="question.options" />
+          <app-poll-results [options]="question.options" [questionId]="question.id" [selectedOptionIds]="selectedOptions()" />
         </section>
       }
     </aside>

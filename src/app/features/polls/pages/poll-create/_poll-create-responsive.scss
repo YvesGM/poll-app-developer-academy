@@ -208,9 +208,8 @@
     }
 
     .validation-notice {
-      position: static;
+      order: 0;
       max-width: 18rem;
-      padding: 0.5rem 0.75rem;
       text-align: center;
     }
 
