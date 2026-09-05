@@ -41,7 +41,6 @@ export class PollCreate implements AfterViewInit {
     ),
   );
   protected readonly categoryMenuOpen = signal(false);
-  private validationNoticeTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly form = this.formBuilder.nonNullable.group({
     category: this.formBuilder.control<PollCategory | null>(null, [Validators.required]),
@@ -168,19 +167,31 @@ export class PollCreate implements AfterViewInit {
     if (!this.canSubmit()) {
       this.form.markAllAsTouched();
       this.showValidationNotice();
+      this.scheduleFirstInvalidScroll();
       return;
     }
+    this.validationNotice.set(false);
     await this.saveSurvey(this.buildCreatePollInput());
   }
 
-  /** Shows the required-field notice for a short period. */
+  /** Keeps the required-field notice visible until a valid submission. */
   private showValidationNotice(): void {
-    if (this.validationNoticeTimer !== null) clearTimeout(this.validationNoticeTimer);
     this.validationNotice.set(true);
-    this.validationNoticeTimer = setTimeout(() => {
-      this.validationNotice.set(false);
-      this.validationNoticeTimer = null;
-    }, 3200);
+  }
+
+  /** Schedules scrolling after Angular has rendered validation classes. */
+  private scheduleFirstInvalidScroll(): void {
+    setTimeout(() => this.scrollToFirstInvalidField());
+  }
+
+  /** Scrolls the first invalid editor control into view. */
+  private scrollToFirstInvalidField(): void {
+    const selector =
+      'input.ng-invalid, textarea.ng-invalid, .category-select__trigger.is-invalid, fieldset.ng-invalid';
+    this.host.nativeElement.querySelector<HTMLElement>(selector)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
   }
 
   /** Returns answer controls for one question. @param questionIndex Question index. */

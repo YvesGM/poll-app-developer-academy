@@ -97,13 +97,8 @@
   color: #b42318;
   background: #fff1f0;
   font-size: 0.75rem;
-  animation: validation-notice 3200ms ease both;
 }
 
-@keyframes validation-notice {
-  0%, 100% { opacity: 0; }
-  10%, 85% { opacity: 1; }
-}
 
 .field--category {
   position: relative;

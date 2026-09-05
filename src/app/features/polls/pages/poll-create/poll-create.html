@@ -194,13 +194,13 @@
     @if (error()) {
       <p class="form-error" role="alert">{{ error() }}</p>
     }
-    @if (validationNotice()) {
-      <p class="validation-notice" role="alert">Please complete all required fields.</p>
-    }
     <footer class="create__footer">
       <button class="button button--primary" type="submit" [disabled]="saving()">
         @if (saving()) { Publishing... } @else { Publish }
       </button>
+      @if (validationNotice()) {
+        <p class="validation-notice" role="alert">Please complete all required fields.</p>
+      }
     </footer>
   </form>
 </article>
